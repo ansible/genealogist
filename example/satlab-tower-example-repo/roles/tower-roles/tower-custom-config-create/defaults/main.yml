@@ -1,0 +1,6 @@
+custom_config_store:
+  - "{{ playbook_dir }}/tower-configs/custom-configs"
+tower_config_directory: /etc/tower/conf.d/
+tower_config_owner: root
+tower_config_group: awx
+file_mode: "0640"

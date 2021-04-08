@@ -1,0 +1,86 @@
+ tower_permissions:
+  - inventory:  RHVM-01
+    team: satlab-admin
+    role: admin
+  - inventory:  RHVM-02
+    team: satellite-qe
+    role: use
+  - inventory:  RHVM-02
+    team: satlab-admin
+    role: admin
+  - job_template: Tower-backup-job-JSON-only
+    team: satlab-admin
+    role: execute
+  # adding perms for inventories
+  - inventory: My Inventory - kkulkarni
+    team: satellite-qe
+    role: read
+  - inventory: My Inventory - bherring
+    team: satellite-qe
+    role: read
+  - inventory: My Inventory - rdrazny
+    team: satellite-qe
+    role: read
+  - inventory: My Inventory - ltran
+    team: satellite-qe
+    role: read
+  - inventory: My Inventory - jcalla
+    team: satellite-qe
+    role: read
+  - inventory: Infra Inventory
+    team: satellite-qe
+    role: read
+  - inventory: Env Inventory
+    team: satellite-qe
+    role: read
+  - workflow: deploy-base-rhel
+    team: satellite-qe
+    role: execute
+  - workflow: remove-vm
+    team: satellite-qe
+    role: execute
+  - job_template: jenkins-set-stats-association-wf
+    user: "{{ gitlab_automation_user_username }}"
+    role: execute
+  - job_template: satlab-tower-remove-vm-from-rhvm-02
+    team: satellite-qe
+    role: execute
+  - job_template: satlab-tower-save-template-from-rhvm-02
+    team: satellite-qe
+    role: execute
+  - workflow: workflow-jenkins-test
+    user: "{{ gitlab_automation_user_username }}"
+    role: execute
+  - workflow: workflow-update-rhel-template
+    user: "{{ gitlab_automation_user_username }}"
+    role: execute
+  - workflow: workflow-update-satellite-capsule-template
+    user: "{{ gitlab_automation_user_username }}"
+    role: execute
+  - job_template: satlab-tower-deploy-baserhel-from-rhvm-02
+    team: satellite-qe
+    role: read
+  - job_template: satlab-tower-deploy-set-stats-for-jenkins-automation-rhvm-02-wf
+    team: satellite-qe
+    role: read
+  - job_template: satlab-tower-deploy-baserhel-from-rhvm-02
+    user: "{{ gitlab_automation_user_username }}"
+    role: read
+  - job_template: satlab-tower-setup-infra-env-wf
+    user: "{{ gitlab_automation_user_username }}"
+    role: read
+  - job_template: satlab-tower-update-rhel-wf
+    user: "{{ gitlab_automation_user_username }}"
+    role: read
+  - job_template: satlab-tower-save-template-from-rhvm-02
+    user: "{{ gitlab_automation_user_username }}"
+    role: read
+  - job_template: satlab-tower-remove-vm-from-rhvm-02
+    user: "{{ gitlab_automation_user_username }}"
+    role: read
+  - job_template: satlab-tower-set-stats-rhel-wf
+    user: "{{ gitlab_automation_user_username }}"
+    role: read
+  - job_template: satlab-tower-install-satellite-lite
+    user: "{{ gitlab_automation_user_username }}"
+    role: read

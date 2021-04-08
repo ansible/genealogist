@@ -1,0 +1,49 @@
+---
+# tasks file for generate-report
+
+- name: Report for a single user
+  block:
+    - name: Report for a specific user
+      set_fact:
+        active_user: "{{ sla_user }}"
+      when:
+        - sla_user | length > 0
+
+    - name: Report for the curren AT user
+      set_fact:
+        active_user: "{{ tower_user_name }}"
+      when:
+        - sla_user | length == 0
+
+    - name: Make sure the specified user has any VMs
+      assert:
+        that:
+          - active_user in user_names
+        fail_msg: "No VMs registered for the user {{ active_user }}"
+        success_msg: "User {{ active_user }} has VM(s) registered, generating a report"
+
+    - name: "Collect VMs for the user {{ active_user }}"
+      set_fact:
+        reported_vms: "{{ grouped_vms[active_user] }}"
+  when:
+    - report_for_all | bool == false
+
+- name: Collect all VMs
+  set_fact:
+    reported_vms: "{{ vm_names }}"
+  when:
+    - report_for_all | bool == true
+
+- name: Create a temp file for the report
+  tempfile:
+    state: file
+  register: output_file
+
+- name: Generate the report
+  template:
+    src: report.j2
+    dest: "{{ output_file.path }}"
+
+- name: Print the report
+  debug:
+    msg: "{{ lookup('file', output_file.path).split('\n') }}"

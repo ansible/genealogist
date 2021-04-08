@@ -1,0 +1,19 @@
+---
+# For for install-prerequisites
+- name: Ping a localhost and hostname
+  command: "ping -c1 {{ item }}"
+  loop:
+    - "{{ ansible_fqdn }}"
+    - localhost
+
+# Install, enable, and start chrony
+- name: Install chrony and start and enable chronyd
+  yum:
+    name: chrony
+    state: present
+
+- name: Start and enable chronyd
+  systemd:
+    name: chronyd
+    enabled: yes
+    state: started

@@ -1,0 +1,4 @@
+# - otp password has to be acquired from IDM and passed
+#   to the playbook or locally added here.
+---
+otp: 'placeholder'

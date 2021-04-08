@@ -1,0 +1,33 @@
+---
+# tasks file for poweroff-vm
+- name: Authorize with {{ engine_fqdn }}
+  ovirt_auth:
+    url: "{{ engine_url }}"
+    username: "{{ engine_user }}"
+    password: "{{ engine_password }}"
+
+- name: Get VM info
+  ovirt_vm_info:
+    auth: "{{ ovirt_auth }}"
+    pattern: "{{ source_vm }}"
+  register: found_vms
+
+- name: Shutdown the machine
+  ovirt_vm:
+    auth: "{{ ovirt_auth }}"
+    name: "{{ source_vm }}"
+    state: stopped
+  when: found_vms["ovirt_vms"]| length > 0
+
+- name: Logout from {{ engine_fqdn }}
+  ovirt_auth:
+    ovirt_auth: "{{ ovirt_auth }}"
+    state: absent
+
+# If the {{ source_vm }} named passed to the role DNE, let's
+# return a failure so it is obvious something went wrong instead
+# of the role passing without issue.
+- name: Fail the play as no vm was passed to the role
+  fail:
+    msg: "No VMs was passed to the role, or the VM passed not found"
+  when: found_vms["ovirt_vms"]| length == 0

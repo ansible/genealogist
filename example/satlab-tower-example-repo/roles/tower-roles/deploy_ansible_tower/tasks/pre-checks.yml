@@ -1,0 +1,15 @@
+---
+- name: Check memory mb total
+  fail:
+    msg: "Available Memory mb is {{ ansible_memtotal_mb }} less than {{ tower_min_memory_mb }}"
+  when:  ansible_memtotal_mb  < tower_min_memory_mb
+- name: Check vcpu count total
+  fail:
+    msg: "Available vcpu is {{ ansible_processor_vcpus }} less than {{ tower_min_vcpus }}"
+  when: ansible_processor_vcpus < tower_min_vcpus
+# below is a very rudimentary check that can be modified further if needed
+- name: Check root partition size
+  fail:
+    msg: "Root partition size is smaller than required size of {{ tower_min_disk_gb }}GB"
+  when: item.mount == '/' and item.size_total/1024/1024/1024 < tower_min_disk_gb
+  loop: "{{ ansible_mounts }}"

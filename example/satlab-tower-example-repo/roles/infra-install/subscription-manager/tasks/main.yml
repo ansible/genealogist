@@ -1,0 +1,41 @@
+---
+# Playbooks should conditionally include this role by placing the following
+# assertion into a `when:` statement.
+# - name: Include RHL credentials
+#   include_vars:
+#     file: vars/credentials
+#     name: rhel
+
+# Enable infra-subscription
+- name: Enable Infra Subcription
+  redhat_subscription:
+    username: "{{ rhn_username }}"
+    password: "{{ rhn_password }}"
+    auto_attach: true
+    force_register: yes
+    state: present
+
+- name: Enable a RHSM repository
+  rhsm_repository:
+    name: rhel-{{ ansible_distribution_major_version }}-server-rpms
+
+- name: Enable optional repository
+  rhsm_repository:
+    name: rhel-{{ ansible_distribution_major_version }}-server-optional-rpms
+
+- name: Enable extras repository
+  rhsm_repository:
+    name: rhel-{{ ansible_distribution_major_version }}-server-extras-rpms
+
+- name: Enable server common repository
+  rhsm_repository:
+    name: rhel-{{ ansible_distribution_major_version }}-server-rh-common-rpms
+  when: ansible_virtualization_type == "RHEV" and ansible_virtualization_role == "guest"
+
+- name: Enable RHSCL repo for Satellite Install
+  rhsm_repository:
+    name: rhel-server-rhscl-{{ ansible_distribution_major_version }}-rpms
+
+- name: Enable Ansible 2.6 for Satellite Install
+  rhsm_repository:
+    name: rhel-{{ ansible_distribution_major_version }}-server-ansible-2.6-rpms

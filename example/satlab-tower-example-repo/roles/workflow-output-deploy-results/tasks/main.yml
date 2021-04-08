@@ -1,0 +1,51 @@
+---
+# tasks file for output-deploy-results
+
+- name: Gather deployed groups identified by pattern "{{ group_pattern }}"
+  set_fact:
+    deployed_groups: "{{ groups | list | select('search', group_pattern) | list }}"
+
+- name: Create output file
+  tempfile:
+    state: file
+  register: output_file
+
+- name: Generate exports for Jenkins
+  set_stats:
+    data:
+      JENKINS_EXPORT:
+        vm_export: "{{ ovirt_vms }}"
+  when: "{{ generate_stats_for_jenkins }}"
+
+- name: Generate AT workflow data
+  block:
+  - name: Build a list of VMs for AT set_stats
+    set_fact:
+      vm_provider_hostname: "{{ vm_provider_hostname|default([]) + [item.name] }}"
+    loop: "{{ ovirt_vms }}"
+    loop_control:
+      label: "{{ item.name }}"
+
+  - name: Build a list of FQDNs for AT set_stats
+    set_fact:
+      vm_provider_fqdn: "{{ vm_provider_fqdn|default([]) + [item.fqdn] }}"
+    loop: "{{ ovirt_vms }}"
+    loop_control:
+      label: "{{ item.fqdn }}"
+
+  - name: Generate AT workflow exports
+    set_stats:
+      data:
+        vm_provisioned: "{{ vm_provider_hostname }}"
+        vm_fqdn: "{{ vm_provider_fqdn }}"
+  when: at_workflow
+
+- name: Generate final output
+  template:
+    src: final_output.j2
+    dest: "{{ output_file.path }}"
+
+- name: Print the final output
+  debug:
+    msg: "{{ lookup('file', output_file.path).split('\n') }}"
+  when: print_to_console

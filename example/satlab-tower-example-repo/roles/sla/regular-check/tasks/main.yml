@@ -1,0 +1,59 @@
+---
+# tasks file for regular-check
+
+# Sigh. O(n^2). What a great devel I'm. At least it happens only once.
+- name: Generate a dict with VMs info for an easy access
+  set_fact:
+    sla_vms_info: "{{ sla_vms_info | default({}) | combine({ item: vm_raw_data['ovirt_vms'] |
+     selectattr('name', 'eq', item) | list | first })}}"
+  loop: "{{ vm_names }}"
+
+  # We could use the ansible_date_time.epoch directly in the comparison, but we want to avoid the corner case, where the
+  # critical time point rolls over during comparisons. Yes, it is an extremely tight corner, I know :-)
+- name: Take the current time as the reference point
+  set_fact:
+    current_time:  "{{ ansible_date_time.epoch | int }}"
+
+- name: Collect and categorize VMs past expiry
+  include_tasks: process_vm_name.yml
+  loop: "{{ vm_names }}"
+  loop_control:
+    loop_var: current_vm_name
+
+- name: Power off VMs that are past expiry, but still in the shutdown period
+  include_role:
+    name: poweroff-vm
+#  debug:
+#    msg: "{{ source_vm }} is being powered-off"
+  loop: "{{ vms_to_shutdown | default([])}}"
+  loop_control:
+    loop_var: source_vm
+
+- name: Remove VMs that are past expiry and the shutdown period
+  include_role:
+    name: remove-vm
+#  debug:
+#    msg: "{{ source_vm }} is being removed"
+  loop: "{{ vms_to_remove | default([]) }}"
+  loop_control:
+    loop_var: source_vm
+
+- name: set fact for data data_out
+  set_stats:
+    data:
+      data_out:
+        removed_vms: "{{  vms_to_remove | default([]) }}"
+        shutdown_vms: "{{  vms_to_shutdown | default([]) }}"
+        vms_expiring_soon: "{{ vms_expiring_soon | default([]) }}"
+        vms_with_bad_names: "{{ bad_vm_names | default([]) }}"
+        normal_vms: "{{ normal_vms | default([]) }}"
+
+#- name: Generate a report with list of VMs that were shutdown or removed during the current run
+#  set_stats:
+#    data:
+#      JENKINS_EXPORT: "{{ data_out }}"
+
+#- name: Set a Jenkins variable
+#  debug:
+#    msg: "JENKINS_EXPORT {{ item.key }}={{ item.value }}"
+#  loop: "{{ data_out | dict2items() }}"

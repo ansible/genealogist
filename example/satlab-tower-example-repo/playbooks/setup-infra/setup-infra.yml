@@ -1,0 +1,27 @@
+# Purpose:
+# When new boxes are added, re-installed, or updated
+# - Enable RedHat SatLab Repos
+# - Configure required services for infra boxes
+# - Update all packages (using yum)
+# - Install RHVM specific utils on their guests
+## TODO: This needs to be removed / updated to a playbook / job_template that is used to deploy
+## - Dependent Playbook
+##    - Ansible Tower Installation
+---
+- hosts: "{{ target_host }}"
+  become: true
+
+  roles:
+    - role: infra-install/subscription-manager
+      when: ansible_distribution == 'RedHat'
+
+    - role: infra-install/configure-services
+
+    - role: infra-install/rhvm-guest-utils
+      when: ansible_virtualization_type == "RHEV" and ansible_virtualization_role == "guest"
+
+    - role: external-roles/ericsysmin.chrony
+      chrony_config_server:
+        - clock.corp.redhat.com
+        - clock.redhat.com
+        - clock2.redhat.com

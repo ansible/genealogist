@@ -1,0 +1,5 @@
+---
+tower_user_accounts:
+  - user: "{{ gitlab_automation_user_username }}"
+    superuser: no
+    password: "{{ gitlab_automation_user_password }}"

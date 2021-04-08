@@ -1,0 +1,23 @@
+- name: Find all custom config files
+  find:
+    patterns: "*.py"
+    paths: "{{ custom_config_store }}"
+  register: found_config_files
+  delegate_to: localhost
+
+- name: Print found custom config files
+  debug:
+    var: found_config_files
+    verbosity: 2
+
+- name: Copy custom config files
+  copy:
+    src: "{{ item.path }}"
+    dest: "{{ tower_config_directory }}"
+    owner: "{{ tower_config_owner }}"
+    group: "{{ tower_config_group }}"
+    mode: "{{ file_mode }}"
+  loop: "{{ found_config_files.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  notify: restart ansible tower

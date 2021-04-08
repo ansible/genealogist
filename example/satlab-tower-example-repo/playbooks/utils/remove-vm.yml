@@ -1,0 +1,8 @@
+# Purpose:
+# Remove the updated VM
+---
+- name: Remove VM After Creating template
+  hosts: localhost
+
+  roles:
+    - remove-vm

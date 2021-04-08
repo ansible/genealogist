@@ -1,0 +1,52 @@
+---
+# tasks file for configure-katello
+- name: Update all packages
+  package:
+    name: "*"
+    state: latest
+
+- name: Install sysadmin utils and packages
+  package:
+      name:
+        - ansible
+        - bind-utils
+        - cloud-init
+        - dmidecode
+        - git
+        - lldpad
+        - net-tools
+        - nfs-utils
+        - ntp
+        - pciutils
+        - screen
+        - tcpdump
+        - tmux
+        - usbutils
+        - vim
+      state: present
+
+- name: Install Katello Requirements
+  package:
+    name:
+      - epel-release
+      - centos-release-scl
+      - gcc
+      - libguestfs-tools-c
+      - libvirt
+      - libvirt-daemon-kvm
+      - libvirt-devel
+      - libxml2-devel
+      - libxslt-devel
+      - qemu
+      - qemu-kvm
+      - ruby-devel
+      - "{{ vargrant_rpm }}"
+
+- name: Enable sysadmin utils and packages
+  service:
+    name: libvirtd
+    state: started
+    enabled: yes
+
+- name: Install Vagrant plugin for libvirt
+  command: vagrant plugin install vagrant-libvirt

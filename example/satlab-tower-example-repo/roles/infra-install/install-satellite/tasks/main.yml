@@ -1,0 +1,61 @@
+# role: install-satellite
+# Purpose: Use the basic manual install to install basic satellite
+# Expectation: Satellite that will be installed with the specified hostname
+---
+- name: Open appropriate firewall ports
+  firewalld:
+    port: "{{ item }}"
+    immediate: yes
+    permanent: yes
+    state: enabled
+  loop:
+    - 80/tcp
+    - 443/tcp
+    - 5646/tcp
+    - 5647/tcp
+    - 5671/tcp
+    - 8000/tcp
+    - 8140/tcp
+    - 8443/tcp
+    - 9090/tcp
+    - 22/tcp
+    - 2375/tcp
+    - 5000/tcp
+    - 16509/tcp
+    - 53/udp
+    - 69/udp
+
+- name: Download Satellite {{ sat_version }} repo file
+  get_url:
+    url: http://ohsnap.sat.engineering.redhat.com/api/releases/{{ sat_version }}/{{ rhel_version }}/satellite/repo_file
+    dest: /etc/yum.repos.d/satellite.repo
+    mode: '0440'
+    timeout: 30
+
+- name: Install Satellite
+  package:
+    name: satellite
+    state: present
+
+- name: Command line install of Satellite 6.6 or greater
+  command: "satellite-installer --scenario satellite --foreman-initial-admin-username {{ sat_username }} --foreman-initial-admin-password {{ sat_password }}"
+  when: sat_version is version('6.6.0', '>=')
+
+- name: Command line install of Satellite 6.5 or less
+  command: "satellite-installer --scenario satellite --foreman-admin-username {{ sat_username }} --foreman-admin-password {{ sat_password }}"
+  when: sat_version is version('6.6.0', '<')
+
+- name: Set default GUI password for SatQE
+  command: foreman-rake permissions:reset password="{{ sat_password }}"
+
+- name: Append current hostname to /etc/template for host renaming after template deploy
+  lineinfile:
+    create: yes
+    path: /etc/template
+    line: "{{ ansible_fqdn }}"
+
+- name: Change hammer credentials
+  lineinfile:
+    path: /root/.hammer/cli.modules.d/foreman.yml
+    regexp: ':password: .*'
+    line: "  :password: '{{ sat_password }}'"

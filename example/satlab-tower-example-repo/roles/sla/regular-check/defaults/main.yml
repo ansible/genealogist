@@ -1,0 +1,13 @@
+---
+# defaults file for regular-check
+# How long will be a VM in the shutdown state before being cleared. The period is configured in the same way as in
+# sla_expire
+sla_shutdown_period: 3
+sla_shutdown_period_unit: 86400
+
+# How long before the expiration should
+expiration_warning_period: 1
+expiration_warning_period_unit: 86400
+
+# Default expire time for VMs that don't have expire_date fact set
+default_expire: 259200

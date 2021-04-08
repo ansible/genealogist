@@ -1,0 +1,52 @@
+---
+# tasks file for deploy-base-sla
+- name: Register with {{ engine_fqdn }} to check inventory
+  ovirt_auth:
+    url: "https://{{ engine_fqdn }}/ovirt-engine/api"
+    username: "{{ engine_user }}"
+    password: "{{ engine_password }}"
+
+- name: Additional debugging for dictionary list if ovirt_vms fails to return values
+  debug:
+    var: ovirt_vms
+    verbosity: 2
+
+- name: Additional "{{ timeout }}" second wait to allow DHCP to complete for FQDN
+  wait_for:
+    timeout: "{{ timeout }}"
+
+- name: Create empty dict
+  set_fact:
+    vm_list: {}
+
+- name: Add VM FQDNs to display
+  set_fact:
+    vm_list: "{{ vm_list | combine({item.name: item.fqdn}) }}"
+  loop: "{{ ovirt_vms }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: "Output the {{ engine_fqdn }} VM name with the VM FQDN name for post-deploy configuration"
+  debug:
+    msg:
+    - "Host has been provisioned: {{ item.key }} with FQDN {{ item.value }}"
+  loop: "{{ vm_list | dict2items }}"
+
+- name: "Export VM names for AT workflow template usage"
+  set_stats:
+    data:
+      target_vm: "{{ vm_list | list }}"
+
+# VM host names and IPs get reused and need to be removed, else there will be issues
+# with initialize playbook and ssh connections in general
+- name: Remove old host record from the known_hosts file
+  known_hosts:
+    name: "{{ item.value }}"
+    state: absent
+  loop: "{{ vm_list | dict2items }}"
+
+# Revoke the SSO token returned from previous task
+- name: Revoke the SSO token for audit
+  ovirt_auth:
+    state: absent
+    ovirt_auth: "{{ ovirt_auth }}"

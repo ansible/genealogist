@@ -1,0 +1,12 @@
+---
+# defaults file for deploy_ansible_tower
+tower_min_memory_mb: 4096
+tower_min_vcpus: 4
+tower_min_disk_gb: 20
+tower_setup_bundle_tar_url: https://releases.ansible.com/ansible-tower/setup-bundle/ansible-tower-setup-bundle-latest.el7.tar.gz
+# following variables are required for the role but we have moved it to
+# inventory/group_vars/all/credentials.yml but if you do not have access to
+# the vault file, you should define following variables.
+# tower_admin_password: changeme
+# tower_pg_password: changeme
+# tower_rabbitmq_password: changeme

@@ -1,0 +1,96 @@
+---
+# tasks file for roles/linter-setup
+- name: Add Docker CE Repo
+  shell: yum-config-manager --add-repo "{{ docker_ce_repo }}"
+
+- name: Install docker-ce packages
+  yum:
+    name: [docker-ce, docker-ce-cli, containerd.io]
+    state: present
+
+- name: start and enable docker service
+  service:
+    name: docker
+    state: started
+    enabled: true
+
+- name: Create directory to hold persistent mount point for gitlab-runner config at "{{ persistent_vol }}"
+  file:
+    name: "{{ persistent_vol }}"
+    state: directory
+    setype: container_file_t
+    recurse: true
+
+- name: create Certs dir under "{{ persistent_vol }}"
+  file:
+    name: "{{ persistent_vol }}/certs"
+    state: directory
+    setype: container_file_t
+    recurse: true
+
+- name: Get RH CA Cert added to "{{ persistent_vol }}/certs"
+  get_url:
+    url: "{{ ca_cert_url }}"
+    dest: "{{ persistent_vol }}/certs/ca.crt"
+    mode: '0644'
+    setype: container_file_t
+
+- name: Copy Gitlab cert to "{{ persistent_vol }}/certs"
+  copy:
+    src: "files/{{ gitlab_cert_name }}"
+    dest: "{{ persistent_vol }}/certs/{{ gitlab_cert_name }}"
+    setype: container_file_t
+
+- block:
+    - name: Enable EPEL repo
+      yum:
+        name: "{{ epel_repo_url }}"
+        state: present
+
+    - name: Install required packages
+      yum:
+         name: python2-pip
+         state: latest
+
+    - name: pip install docker
+      pip:
+        name: docker
+        state: present
+  always:
+    - name: Disable EPEL Repo for safety
+      yum:
+        name: epel-release
+        state: absent
+
+# Next task is supposed to run following container(https://docs.gitlab.com/runner/install/docker.html):
+# docker run -d --name gitlab-runner --restart always \
+# -v /srv/gitlab-runner/config:/etc/gitlab-runner   \
+# -v /var/run/docker.sock:/var/run/docker.sock   gitlab/gitlab-runner:latest
+
+- name: Create gitlab-runner docker container
+  docker_container:
+    name: gitlab-runner
+    image: gitlab/gitlab-runner:latest
+    state: started
+    restart: yes
+    detach: yes
+    volumes:
+      - /srv/gitlab-runner/config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+
+# Then Register the gitlab-runner as(https://docs.gitlab.com/runner/register/index.html#one-line-registration-command):
+# docker run --rm -v /srv/gitlab-runner/config:/etc/gitlab-runner gitlab/gitlab-runner register \
+# --non-interactive   --executor "docker"   --docker-image alpine:latest   --url "https://gitlab.sat.engineering.redhat.com/" \
+# --registration-token "hsWEpPPEnq9R4k2gFqby"   --description "docker-runner-satlab-admin"   --tag-list "docker,gitlab-runner" \
+# --run-untagged="true"   --locked="false"   --access-level="not_protected" --env GIT_SSL_NO_VERIFY=true --env VAULT_SECRET='{{ vault_admin_secret }}'
+- name: Register gitlab-runner against GitLab
+  docker_container:
+    name: runner-registration
+    image: gitlab/gitlab-runner
+    auto_remove: yes
+    volumes:
+      - /srv/gitlab-runner/config:/etc/gitlab-runner
+    command: "--non-interactive   --executor docker   --docker-image alpine:latest   --url 'https://{{ gitlab_url }}/'
+    --registration-token '{{ gitlab_runner_registration_token }}'   --description 'docker-runner-satlab-admin'   --tag-list 'docker,gitlab-runner'
+    --run-untagged='true'   --locked='false'   --access-level='not_protected' --env GIT_SSL_NO_VERIFY=true --env VAULT_ADMIN_SECRET='{{ vault_admin_secret }}'
+    --env VAULT_USER_SECRET='{{ vault_user_secret }}'"

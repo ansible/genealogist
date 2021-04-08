@@ -1,0 +1,12 @@
+galaxy_info:
+  author: Kedar Kulkarni(kedarkulkarni0@gmail.com)
+  description: Senior Software Quality Engineer
+  company: Red Hat
+
+  license: license (GPL-2.0-or-later, MIT, etc)
+
+  min_ansible_version: 2.8
+  galaxy_tags:
+    - tower
+    - deployment
+    - automation

@@ -1,0 +1,44 @@
+#  The following required variables are supplied by the
+#  ansible vault run as the admin user in
+#  group_vars/all/credentials.yml
+#   - engine_user: "{{ username }}@redhat.com"
+#   - engine_password: "{{ password }}"
+---
+# Default RHVM template to deploy
+template: "rhel-{{ rhel_version | default('7.7') }}-latest"
+debug_vm_create: true
+
+# RHVM where VMs are deployed
+engine_fqdn: "{{ rhvm_02_fqdn }}"
+
+# Template Variables
+custom_name: ""
+# https://docs.ansible.com/ansible-tower/2.4.0/html/userguide/job_templates.html
+rhvm_hostname: "{{ tower_user_name }}-{{ template }}-{{ ansible_date_time.epoch }}{{ custom_name }}"
+
+# Required wait for FQDN resolution or playbook errors on dictionary return
+timeout: 30
+wait_for_ip: true
+vm_infra_wait_for_ip_retries: 20
+vm_infra_wait_for_ip_delay: 10
+
+# Required: dictionary that defines "vms:"
+# For more customizable options in deploying a VM, see:
+# external-roles/ovirt.vm-infra/README.md
+deploy_template:
+  cluster: Default
+  template: "{{ template }}"
+  memory: 20GiB
+  cores: 6
+  state: running
+  cloud_init:
+    authorized_ssh_keys: "{{ jenkins_public_ssh_key }}"
+  cloud_init_persist: true
+
+# Dictionary that defines the deployed VM
+# Note: Playbook can currently only handle a single VM deployment
+# ToDo: Improve the deployment to several VMs, if commonly needed by end-users
+vms:
+  - name: "{{ rhvm_hostname }}"
+    tag: baserhel
+    profile: "{{ deploy_template }}"

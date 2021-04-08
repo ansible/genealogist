@@ -1,0 +1,11 @@
+# Purpose:
+# Output the template name of the updated capsule
+---
+- name: Output the Updated Capsule Template
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - role: set-stats
+      vars:
+        data:
+          template: "{{ target_template }}"

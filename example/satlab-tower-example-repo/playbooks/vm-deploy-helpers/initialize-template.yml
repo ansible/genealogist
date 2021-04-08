@@ -1,0 +1,14 @@
+- name: Initialize template
+  hosts: ovirt_tag_deploy_template
+
+  vars:
+    - new_hostname: "{{ hostvars['localhost']['ovirt_vms'][0]['fqdn'] }}"
+    # Adding var to decrypt password before use
+    - tower_admin_password_decrypted: "{{ tower_admin_password }}"
+
+  post_tasks:
+    - name: Update root's password
+      user:
+        name: root
+        password: "{{ tower_admin_password_decrypted | password_hash('sha512') }}"
+        update_password: always

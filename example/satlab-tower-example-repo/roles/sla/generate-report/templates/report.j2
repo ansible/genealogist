@@ -1,0 +1,6 @@
+VMs expiration info {% if report_for_all is sameas true %}for all VMs.{% else %}for user {{ active_user }}. {% endif %}
+
+Number of VMs: {{ reported_vms | length }}
+{% for vm in reported_vms %}
+VM name: {{ vm }} Expiration time: {{ '%Y-%m-%d %H:%M:%S %Z' | strftime(hostvars[vm]['ansible_facts']['expire_date'] | default(0)) }}
+{% endfor %}

@@ -1,0 +1,28 @@
+---
+- name: Deploying a Template on RHVM
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    - role: deploy/deploy-base
+      vars:
+        vm_definition: deploy-configs/baserhel7.yml
+
+- name: Do a basic common system config for all created VMs
+  hosts: ovirt_vm
+
+  roles:
+    - role: deploy/basic-satlab-vm-config
+      vars:
+        vm_root_pass: "{{ default_satqe_password }}"
+
+- name: Output deployed hosts
+  hosts: localhost
+  gather_facts: false
+  # When true, output via `set_stats` the name and fqdn for the VMs
+  # deployed to operate on in following job templates
+  vars:
+    at_workflow: true
+
+  roles:
+    - workflow-output-deploy-results

@@ -1,0 +1,20 @@
+# Purpose:
+# Provide the meta for setup-infra
+---
+- name: Provide the RHEL meta for setup-infra
+  hosts: localhost
+  gather_facts: false
+  vars:
+    # RHEL Template Specific Required Variables
+    - rhel_template:  "tpl-rhel-{{ rhel_version }}-latest"
+    - target_host: "{{ vm_provisioned[0] }}"
+
+  # Output the required results
+  roles:
+    - role: set-stats
+      vars:
+        data:
+          source_vm:       "{{ vm_provisioned[0] }}"
+          source_fqdn:     "{{ vm_fqdn[0] }}"
+          target_template: "{{ rhel_template }}"
+          target_host:     "{{ vm_provisioned[0] }}"

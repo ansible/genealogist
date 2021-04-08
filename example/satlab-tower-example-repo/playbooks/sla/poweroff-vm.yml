@@ -1,0 +1,8 @@
+---
+- name: Poweroff VM {{ source_vm }}
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    # Requires a "source_vm" var with the name of VM to poweroff to be passed to the playbook
+    - sla/poweroff-vm

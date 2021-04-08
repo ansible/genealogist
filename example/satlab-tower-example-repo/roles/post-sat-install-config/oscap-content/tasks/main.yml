@@ -1,0 +1,4 @@
+---
+# tasks file for oscap-content
+- name: Populate oscap-content
+  command: "foreman-rake foreman_openscap:bulk_upload:default"

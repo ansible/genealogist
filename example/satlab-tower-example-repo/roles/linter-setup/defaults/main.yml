@@ -1,0 +1,10 @@
+---
+# defaults file for roles/linter-setup
+# Use RH CA Cert URL
+ca_cert_url: https://password.corp.redhat.com/RH-IT-Root-CA.crt
+persistent_vol: /srv/gitlab-runner/config
+gitlab_url: gitlab.sat.engineering.redhat.com
+gitlab_cert_name: "{{ gitlab_url }}.crt"
+gitlab_runner_registration_token: hsWEpPPEnq9R4k2gFqby
+docker_ce_repo: https://download.docker.com/linux/centos/docker-ce.repo
+epel_repo_url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm

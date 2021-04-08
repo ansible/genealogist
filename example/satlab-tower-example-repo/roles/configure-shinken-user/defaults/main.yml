@@ -1,0 +1,6 @@
+---
+# defaults file for roles/configure-shinken-user
+# Name of the user to be created
+shinken_username: shinken
+# Following var should be defined either here or via Ansible Vault
+# monitoring_ssh_key_public: <public_key>

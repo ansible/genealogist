@@ -1,0 +1,38 @@
+# role: install-capsule
+# Purpose: Use the basic manual install to install basic capsule
+# Expectation: capsule RPM is installed but no further configuration
+---
+- name: Open appropriate firewall ports
+  firewalld:
+    port: "{{ item }}"
+    immediate: yes
+    permanent: yes
+    state: enabled
+  loop:
+    - 80/tcp
+    - 443/tcp
+    - 5646/tcp
+    - 5647/tcp
+    - 5671/tcp
+    - 8000/tcp
+    - 8140/tcp
+    - 8443/tcp
+    - 9090/tcp
+    - 22/tcp
+    - 2375/tcp
+    - 5000/tcp
+    - 16509/tcp
+    - 53/udp
+    - 69/udp
+
+- name: Download Capsule {{ sat_version }} repo file
+  get_url:
+    url: http://ohsnap.sat.engineering.redhat.com/api/releases/{{ sat_version }}/{{ rhel_version }}/capsule/repo_file
+    dest: /etc/yum.repos.d/capsule.repo
+    mode: '0440'
+    timeout: 30
+
+- name: Install Capsule
+  package:
+    name: satellite-capsule
+    state: present

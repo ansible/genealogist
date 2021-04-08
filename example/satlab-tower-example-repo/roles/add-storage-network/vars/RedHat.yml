@@ -1,0 +1,6 @@
+distro_specific_packages:
+  - NetworkManager-glib
+  - libnm-gtk-devel
+  - nm-connection-editor
+  - libsemanage-python
+  - policycoreutils-python

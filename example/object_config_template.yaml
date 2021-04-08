@@ -1,0 +1,33 @@
+credentials:
+    paths:
+    names:
+hosts:
+    paths:
+    names:
+inventories:
+    paths:
+    names:
+inventory_sources:
+    paths:
+    names:
+job_templates:
+    paths:
+    names:
+organizations:
+    paths:
+    names:
+permissions:
+    paths:
+    names:
+projects:
+    paths:
+    names:
+teams:
+    paths:
+    names:
+users:
+    paths:
+    names:
+workflows:
+    paths:
+    names:

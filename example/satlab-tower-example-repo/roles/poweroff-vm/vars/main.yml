@@ -1,0 +1,4 @@
+---
+# vars file for poweroff-vm
+engine_fqdn: infra-rhvm-02.infra.sat.rdu2.redhat.com
+engine_url: "https://{{ engine_fqdn }}/ovirt-engine/api"

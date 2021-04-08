@@ -1,0 +1,17 @@
+---
+# defaults file for set-expire-time
+
+new_expire_time: "{{ ansible_date_time.epoch | int + 259200 }}"
+
+
+# This validates the custom to_datetime format, defined by the "to_datetime_format" var (see Python docs for the format
+# codes explanation - https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior)
+# The default to_datetime string is "%Y-%m-%d %H:%M:%S", but I guess we really don't need seconds-level resolution.
+# In case the seconds-level resolution is needed, then use this:
+# human_friendly_expire_time_pattern: "^20\d{2}-(0[1-9]|1[0-2])-([0-2][1-9]|3[0,1]) ([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$"
+# and drop the "to_datetime_format" variable, as this regex validates the default for to_datetime - search for
+# "to_datetime" here: https://docs.ansible.com/ansible/latest/user_guide/playbooks_filters.html
+human_friendly_expire_time_pattern: '^20\d{2}-(0[1-9]|1[0-2])-([0-2][1-9]|3[0,1]) ([01][0-9]|2[0-3]):([0-5][0-9])$'
+# Everybody loves regex, right? :-)
+
+to_datetime_format: "%Y-%m-%d %H:%M"

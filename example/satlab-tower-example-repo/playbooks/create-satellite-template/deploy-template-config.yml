@@ -1,0 +1,54 @@
+# Configuration for deploying a RHEL template and installing Satellite.
+# Note:
+#   The following required variables are supplied by the
+#   ansible vault run as the admin user
+#   - engine_user: "{{ username }}@redhat.com"
+#   - engine_password: "{{ password }}"
+---
+# Default RHVM template to deploy
+template: rhel-7.7-latest
+debug_vm_create: true
+
+# RHVM where VMs are deployed
+engine_fqdn: infra-rhvm-02.infra.sat.rdu2.redhat.com
+
+# Template Variables
+custom_name: ""
+rhvm_hostname: "{{ ansible_user_id }}-{{ template }}-{{ ansible_date_time.epoch }}{{ custom_name }}"
+sat_username: admin
+sat_password: changeme
+
+# Satellite Install Specific
+rhel_version: el7
+rhvm_cluster: Default
+sat_template: satellite-6.7-latest
+sat_version: 6.7.0
+snap_version: test
+test_rhev: rhevm1.satellite.lab.eng.rdu2.redhat.com
+
+# Default public ssh key to use
+user_ssh_key: "~/.ssh/id_rsa.pub"
+
+# Required wait for FQDN resolution or playbook errors on dictionary return
+timeout: 30
+
+# Required: dictionary that defines "vms:"
+# For more customizable options in deploying a VM, see:
+# external-roles/ovirt.vm-infra/README.md
+deploy_template:
+  cluster: Default
+  template: "{{ template }}"
+  memory: 20GiB
+  cores: 6
+  state: running
+  cloud_init:
+    authorized_ssh_keys: "{{ jenkins_public_ssh_key }}\n{{ lookup('file', '{{ user_ssh_key }}') }}"
+  cloud_init_persist: true
+
+# Dictionary that defines the deployed VM
+# Note: Playbook can currently only handle a single VM deployment
+# ToDo: Improve the deployment to several VMs, if commonly needed by end-users
+vms:
+  - name: "{{ rhvm_hostname }}"
+    tag: deploy_template
+    profile: "{{ deploy_template }}"

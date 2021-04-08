@@ -1,0 +1,7 @@
+{"sat_password": "{{ sat_gui_username }}",
+ "sat_username": "{{ sat_gui_password }}",
+ "satellite_version": "",
+ "snap_version": "",
+ "rhel_version": "el7",
+ "target_hosts": ""
+}

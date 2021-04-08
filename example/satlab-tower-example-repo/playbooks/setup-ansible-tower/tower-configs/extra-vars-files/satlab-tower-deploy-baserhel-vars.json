@@ -1,0 +1,1 @@
+{'vm_root_password': '{{ default_satqe_password }}'}

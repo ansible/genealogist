@@ -1,0 +1,11 @@
+# Source: https://gitlab.corp.redhat.com/it-iam/ipa-client-install
+# Took ownership of these roles as we need to change NTP options
+# Prefer chronyc over ntp in install
+---
+- name: Install nonuser IPA client
+  include_tasks: tasks/install.yml
+  when: state|default('present') == 'present'
+
+- name: Uninstall nonuser IPA client
+  include_tasks: tasks/uninstall.yml
+  when: state|default('present') == 'absent'

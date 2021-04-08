@@ -1,0 +1,8 @@
+---
+# defaults file for roles/remove-vm
+source_vm: ""
+engine_fqdn: infra-rhvm-02.infra.sat.rdu2.redhat.com
+engine_user: admin@internal
+engine_password: ""
+force_delete: False
+rhvm_cluster: "Default"

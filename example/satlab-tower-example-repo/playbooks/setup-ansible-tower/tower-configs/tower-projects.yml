@@ -1,0 +1,21 @@
+---
+tower_projects:
+  - name: satlab-tower-master
+    description: satlab-tower repo master branch
+    organization: Satellite
+    scm_url: "{{ satlab_tower_repo_url | default('https://gitlab.sat.engineering.redhat.com/satelliteqe/satlab-tower') }}.git"
+    scm_branch: "{{ satlab_tower_repo_branch | default('master') }}"
+    scm_clean: yes
+    scm_update_on_launch: yes
+    scm_delete_on_update: yes
+    scm_update_cache_timeout: 1800
+    scm_credential: gitlab-personal-access-token for satqe_auto_droid
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+  - name: satlab-ansible-master
+    description: satlab-ansible repo master branch
+    organization: Satellite
+    scm_url: https://gitlab.sat.engineering.redhat.com/satelliteqe/satlab-ansible.git
+    scm_branch: master
+    scm_clean: true
+    scm_update_on_launch: yes
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/

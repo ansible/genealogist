@@ -1,0 +1,6 @@
+---
+# defaults file for poweroff-vm
+source_vm: ""
+engine_fqdn: ""
+engine_user: admin@internal
+engine_password: ""

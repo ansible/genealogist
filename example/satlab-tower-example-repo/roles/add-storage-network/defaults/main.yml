@@ -1,0 +1,7 @@
+---
+# add static storage network to VM
+# nmcli_ethernet:
+#   - conn_name: eth1
+#     ifname: eth1
+#     ip4: 192.168.133.30/24
+#     gw4: 192.168.133.254

@@ -1,0 +1,11 @@
+---
+# defaults file for generate-sla-stats
+
+# We want to filter out HostedEngine, so we search only for names containing a dash
+search_pattern: name=*-*
+bad_vms_search_pattern: name!=*-*
+
+# A list of VM names to be ignored during the SLA processing
+ignore_vm:
+  - HostedEngine
+  - rdrazny-sat-5.8-stable

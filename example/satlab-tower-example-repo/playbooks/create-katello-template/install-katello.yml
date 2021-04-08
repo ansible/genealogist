@@ -1,0 +1,32 @@
+# Purpose:
+# Install Satellite on a dynamically deployed template
+---
+- name: Import Deploy Satellite Template from satlab-admin
+  vars:
+    # This specific encrypted password is required to be decrypted before
+    # Usage. To do this, setting the value to the variable in vm-deploy-helpers/initialize.yml
+    # for the satlab-ansible version of the role
+    vm_root_pass: "{{ default_satqe_password }}"
+  import_playbook: ../../satlab-ansible/playbooks/deploy-template/deploy-template-centos7.yml
+
+- name: Install Katello RPMs and Vagrant
+  hosts: ovirt_tag_baserhel
+  roles:
+    - configure-katello
+
+- name: Deploying a Template on RHVM
+  hosts: localhost
+  vars:
+    # Defines the vars required for deploying a template
+    - engine_fqdn: "{{ rhvm_02_fqdn }}"
+    - initialize_definition: '../../satlab-ansible/playbooks/deploy-template/deploy-template-centos7.yml'
+    - source_vm: "{{ hostvars['localhost']['ovirt_vms'][0]['name'] }}"
+    - new_hostname: "{{ hostvars['localhost']['ovirt_vms'][0]['fqdn'] }}"
+    - target_template: "tpl-katello-latest"
+
+  vars_files:
+    - "{{ initialize_definition }}"
+
+  roles:
+    - save-template
+    - remove-vm

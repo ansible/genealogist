@@ -1,0 +1,61 @@
+---
+# Note: This playbook needs ansible-tower-cli installed and configured to run successfully.
+- name: Playbook to configure ansible tower post installation
+  hosts: "{{ target_hosts | default('ovirt_tag_deploy_template') }}"
+  pre_tasks:
+    - name: Include vars from tower-configs directory
+      include_vars:
+        dir: tower-configs
+        ignore_files: [tower-config.yml.template, .+\.py]
+        extensions: ["json", "yaml", "yml"]
+    # Add Red Hat CA Cert and update ca trust so that LDAP config works
+    - name: Copy Red Hat CA Cert to correct location
+      get_url:
+        url: https://password.corp.redhat.com/RH-IT-Root-CA.crt
+        dest: /etc/pki/ca-trust/source/anchors/RH-IT-Root-CA.crt
+        mode: '0644'
+
+    - name: Update CA Trust
+      command: update-ca-trust
+
+    # Problem:
+    # - Sources on job_template run would clone the repo but look at the first
+    #   instead of HEAD commit
+    # Solution:
+    # - Add `no_log: true` to configure tower
+    # Reference:
+    # - https://access.redhat.com/solutions/4907581
+    - name: Updated "project_update.yml" patch
+      lineinfile:
+        path: "/var/lib/awx/venv/awx/lib/python3.6/site-packages/awx/playbooks/project_update.yml"
+        insertafter: "when: scm_delete_on_update|default('')"
+        line: "      no_log: True"
+
+  roles:
+    - { role: helpers/build-satlab-venv}
+    - { role: roles/tower-roles/tower-cli-installer}
+    - { role: roles/tower-roles/tower-custom-config-create}
+    - { role: roles/tower-roles/tower-settings, when: tower_setting_params is defined }
+    - { role: roles/tower-roles/tower-org-create, when: tower_organization is defined }
+    - { role: roles/tower-roles/tower-user-create, when: tower_user_accounts is defined }
+    - { role: roles/tower-roles/tower-team-create, when: tower_teams is defined }
+    - { role: roles/tower-roles/tower-credential-create, no_log: True, when: tower_credentials is defined }
+    - { role: roles/tower-roles/tower-inventory-create, when: tower_inventories is defined }
+    - { role: roles/tower-roles/tower-project-create, when: tower_projects is defined }
+    - { role: roles/tower-roles/tower-inventory-sources-create, when: tower_inventory_sources is defined }
+    - { role: roles/tower-roles/tower-hosts, when: tower_hosts is defined }
+    - { role: roles/tower-roles/tower-job-template-create, when: tower_job_templates is defined }
+    - { role: roles/tower-roles/tower-notifications, when: tower_notifications is defined }
+    - { role: roles/tower-roles/tower-workflow-create, when: tower_workflows is defined }
+    - { role: roles/tower-roles/tower-permissions, when: tower_permissions is defined }
+    - { role: configure-shinken-user }
+
+  handlers:
+    - include: ../../handlers/restart_ansible_tower.yml
+
+  tasks:
+    - name: Output Hostname
+      debug:
+        msg:
+        - "The tower vm {{ inventory_hostname }} is now ready."
+        - "The FQDN is {{ hostvars['localhost']['ovirt_vms'][0]['fqdn'] | default(target_hosts) }}"

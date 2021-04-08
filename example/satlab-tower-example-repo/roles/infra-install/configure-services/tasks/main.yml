@@ -1,0 +1,35 @@
+---
+# tasks file for configure-services
+- name: Update all packages
+  package:
+    name: "*"
+    state: latest
+
+- name: Install sysadmin utils and packages
+  package:
+      name:
+        - ansible
+        - bind-utils
+        - cloud-init
+        - dmidecode
+        - git
+        - net-tools
+        - nfs-utils
+        - ntp
+        - pciutils
+        - screen
+        - tcpdump
+        - tmux
+        - usbutils
+        - vim
+      state: present
+
+- name: cloud-init file copy
+  copy:
+    src: ../files/cloud.cfg
+    dest: /etc/cloud/cloud.cfg
+
+- name: Enable cloud-init
+  service:
+    name: cloud-init
+    enabled: yes

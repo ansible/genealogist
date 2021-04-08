@@ -1,0 +1,21 @@
+---
+- name: Include {{ ansible_distribution }} specific vars
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_distribution }}.yml"
+
+- name: Install packages required on the system level
+  package:
+    name: "{{ distro_specific_packages }}"
+    state: present
+
+- name: Add an Ethernet connection with static IP configuration
+  nmcli:
+    conn_name: "{{ item.conn_name }}"
+    ifname: "{{ item.ifname }}"
+    type: ethernet
+    ip4: "{{ item.ip4 }}"
+    gw4: "{{ item.gw4 }}"
+    state: present
+  when: nmcli_ethernet is defined
+  with_items: "{{ nmcli_ethernet }}"

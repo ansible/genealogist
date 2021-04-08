@@ -1,0 +1,3 @@
+{'ovirt_repo_release_rpm': 'http://bob.eng.lab.tlv.redhat.com/builds/4.3/rhv-4.3.4-7/rhv-release-latest-4.3.noarch.rpm',
+ 'rhv_ovirt_version': 4.3,
+ 'ovirt_engine_url': '{{ ovirt_engine_fqdn }}'}

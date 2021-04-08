@@ -1,0 +1,6 @@
+---
+# defaults file for output-deploy-results
+group_pattern: ovirt_tag_*
+print_to_console: false
+generate_stats_for_jenkins: false
+at_workflow: false

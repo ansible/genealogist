@@ -1,0 +1,21 @@
+---
+# Execute as: ansible-playbook decrypt-key-from-vault.yml \
+# -e 'key="{{ <any key from vault> }}"' -e 'destination=<some path relative to playbook>' \
+# --vault-id=.vault_secret
+- name: Decrypt any key from vault and store it in a file
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    decrypted_key: "{{ key }}"
+  tasks:
+    - name: debug key
+      debug:
+        var: decrypted_key
+      when: debug_output is defined and debug_output|bool
+    - name: store key in a file
+      copy:
+        content: "{{ decrypted_key }}"
+        dest: "{{ destination }}"
+        mode: 0600
+      when: destination is defined

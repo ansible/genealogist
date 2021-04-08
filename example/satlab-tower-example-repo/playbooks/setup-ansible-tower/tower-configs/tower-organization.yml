@@ -1,0 +1,7 @@
+# ---
+tower_organization:
+  - name: Satellite
+    state: present # optional
+    custom_virtualenv: "{{ satlab_venv_location }}/{{ satlab_venv_name }}/"
+  - name: Default
+    state: absent

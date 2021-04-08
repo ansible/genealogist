@@ -1,0 +1,6 @@
+---
+# tasks file for set-stats
+- name: Output provided datastructure to set_stats
+  set_stats:
+    data:
+      "{{ data }}"

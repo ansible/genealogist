@@ -1,0 +1,7 @@
+---
+- name: "Set expire time for {{ target_vm }}"
+  hosts: "{{ target_vm }}"
+  gather_facts: true
+
+  roles:
+    - sla/set-expire-time

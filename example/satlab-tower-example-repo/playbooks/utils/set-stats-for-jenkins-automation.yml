@@ -1,0 +1,21 @@
+---
+- name: set stats output for Jenkins and Automation
+  hosts: "{{ vm_provisioned | default(target_hosts or 'localhost') }}"
+  gather_facts: True
+  vars:
+    data:
+      provider: "{{ ansible_facts['virtualization_type'] }}"
+      fqdn: "{{ ansible_facts['fqdn'] }}"
+      name: "{{ vm_provisioned[0] | default(ansible_facts['hostname']) }}"
+      os_distribution: "{{ ansible_facts['distribution'] }}"
+      os_distribution_version: "{{ ansible_facts['distribution_version'] }}"
+      template: "{{ template | default(None) }}"
+      host_type: "{{ host_type | default('host') }}"
+      reported_devices:
+        nics: "{{ ansible_facts['interfaces'] }}"
+  tasks:
+    - name: Setting required stats
+      set_stats:
+        data:
+          JENKINS_EXPORT:
+            "{{ data }}"

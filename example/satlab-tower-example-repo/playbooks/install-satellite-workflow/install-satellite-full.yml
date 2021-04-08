@@ -1,0 +1,29 @@
+# Purpose:
+# Install Satellite FULL on a dynamically deployed template
+---
+- name: Install Satellite FULL
+  hosts: "{{ target_hosts or vm_provisioned }}"
+  vars:
+    # Satellite Specific Required Variables
+    - new_hostname:        "{{ vm_fqdn }}"
+    - sat_version:         "{{ satellite_version }}"
+    - sat_username:        "{{ sat_gui_username }}"
+    - sat_password:        "{{ sat_gui_password }}"
+    - sat_template:  "tpl-sat-full-{{ satellite_version }}-snap-{{ snap_version }}"
+
+  ## All the base LITE roles + Jenkins roles == FULL
+  ## TODO: More roles need to be added for this to be a complete FULL workflow
+  ## For now, this is a placeholder playbook to create the templates
+  ## @ltran needs to continue adding new roles here
+  roles:
+    - role: infra-install/subscription-manager
+    - role: install-prerequisites
+    - role: infra-install/install-satellite
+    - role: post-sat-install-config/oscap-content
+    - role: infra-install/fake_manifests
+    - role: set-stats
+      vars:
+        data:
+          source_vm:       "{{ target_hosts or vm_provisioned[0] }}"
+          target_template: "{{ sat_template }}"
+          sat_full_target_template: "{{ sat_template }}"

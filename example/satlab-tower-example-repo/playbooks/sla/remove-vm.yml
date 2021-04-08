@@ -1,0 +1,8 @@
+---
+- name: Remove VM {{ source_vm }}
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    # Requires "source_vm" var with the name of VM to remove to be passed to the playbook
+    - sla/remove-vm

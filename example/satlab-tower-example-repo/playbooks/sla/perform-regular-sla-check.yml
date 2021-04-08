@@ -1,0 +1,6 @@
+- name: "Shutdown and remove VMs past expiry time"
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    - role: sla/regular-check

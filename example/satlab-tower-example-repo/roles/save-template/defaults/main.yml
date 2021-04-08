@@ -1,0 +1,10 @@
+---
+# defaults file for save-template
+source_vm: ""
+target_template: ""
+seal_template: yes
+engine_fqdn: infra-rhvm-02.infra.sat.rdu2.redhat.com
+engine_user: admin@internal
+engine_password: ""
+snap_version: "SNAP1"
+wait_timeout: 360

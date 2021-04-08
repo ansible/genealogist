@@ -1,0 +1,4 @@
+---
+# defaults file for generate-report
+sla_user: ''
+report_for_all: false

@@ -1,0 +1,12 @@
+# https://gitlab.sat.engineering.redhat.com/rplevka/sat-deploy/tree/robottelo_e2e/roles/fake_manifest
+---
+# tasks file for fake_manifests
+- name: 'Download Fake Manifest Certificate'
+  get_url:
+    url: "{{ fake_manifest_cert }}"
+    dest: /etc/candlepin/certs/upstream/
+
+- name: 'Restart candlepin'
+  service:
+    name: tomcat
+    state: restarted

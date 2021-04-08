@@ -1,0 +1,13 @@
+---
+# tasks file for roles/configure-shinken-user
+- name: Create new user "{{ shinken_username }}"
+  user:
+    name: "{{ shinken_username }}"
+    comment: User for Shinken Monitoring
+    expires: -1
+
+- name: Add Shinken public key to "{{ shinken_username }}"'s home directory
+  authorized_key:
+    user: "{{ shinken_username }}"
+    key: "{{ monitoring_ssh_key_public }}"
+    path: "/home/{{ shinken_username }}/.ssh/authorized_keys"

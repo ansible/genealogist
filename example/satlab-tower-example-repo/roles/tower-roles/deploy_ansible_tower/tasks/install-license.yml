@@ -1,0 +1,47 @@
+---
+# this piece of code is partially taken from redhat-cop/agnosticd repo
+- block:
+    - name: Enable EPEL repo
+      yum:
+        name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+        state: present
+
+    - name: Install required packages
+      yum:
+         name: "{{ item }}"
+         state: latest
+      with_items:
+        - python
+        - python2-pip
+        - python-devel
+        - gcc
+
+    - name: Install tower-cli
+      pip:
+        name: ansible-tower-cli
+        state: latest
+        executable: /usr/bin/pip2
+
+    - name: Configure the tower cli file
+      template:
+        src: tower-cli.j2
+        dest: "~/.tower_cli.cfg"
+        mode: 0600
+
+    - name: Copy license to tower VM
+      copy:
+        content: "{{ tower_license }}"
+        dest: /root/license.txt
+
+    - name: Add the tower license
+      command: tower-cli setting modify LICENSE @/root/license.txt --insecure
+  always:
+    - name: Remove License file
+      file:
+        path: /root/license.txt
+        state: absent
+
+    - name: Disable EPEL repo
+      yum:
+        name: epel-release
+        state: absent

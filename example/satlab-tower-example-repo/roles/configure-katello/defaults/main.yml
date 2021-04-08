@@ -1,0 +1,5 @@
+---
+# defaults file for configure-katello
+# Get the latest version of this RPM from:
+# https://releases.hashicorp.com/vagrant/
+vargrant_rpm: https://releases.hashicorp.com/vagrant/2.1.5/vagrant_2.1.5_x86_64.rpm

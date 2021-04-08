@@ -1,0 +1,24 @@
+# Purpose:
+# Install Satellite LITE on a dynamically deployed template
+---
+- name: Install Satellite LITE
+  hosts: "{{ target_hosts or vm_provisioned }}"
+  vars:
+    # Satellite Specific Required Variables
+    - new_hostname:        "{{ vm_fqdn }}"
+    - sat_version:         "{{ satellite_version }}"
+    - sat_username:        "{{ sat_gui_username }}"
+    - sat_password:        "{{ sat_gui_password }}"
+    - sat_template:  "tpl-sat-lite-{{ satellite_version }}-snap-{{ snap_version }}"
+
+  # Just the LITE roles
+  roles:
+    - role: infra-install/subscription-manager
+    - role: infra-install/install-satellite
+    - role: infra-install/fake_manifests
+    - role: set-stats
+      vars:
+        data:
+          source_vm:       "{{ target_hosts or vm_provisioned[0] }}"
+          target_template: "{{ sat_template }}"
+          sat_lite_target_template: "{{ sat_template }}"

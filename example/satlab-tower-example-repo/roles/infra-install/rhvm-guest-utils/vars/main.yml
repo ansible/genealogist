@@ -1,0 +1,9 @@
+---
+# vars file for rhvm-guest-utils
+guest_package:
+  util:
+    spice: spice-vdagent
+    ovirt: ovirt-guest-agent-common
+  service:
+    spice: spice-vdagentd.service
+    ovirt: ovirt-guest-agent.service

@@ -1,0 +1,27 @@
+---
+# defaults file for check-sla-limit
+
+# Defines SLA limit in days for VM to be kept
+# The "default" is used as...well, default.
+# To assign a custom SLA  limit to an user, add his name to the dict as a key, and add the desired
+# limit as key's value
+# Remember now, we can't hire anyone with the first name starting with "D", and second name "Efault, never ever!"
+# Sorry Mr. David Efault, it would be great to meet you :-)
+sla_vm_limits:
+  default: 5
+  rdrazny: 11
+
+#Following vars aren't used currently, as anyone can set any expiry_date right now.
+# Standard extension length in days
+extension_length: 5
+
+# Max number of extensions
+max_extensions: 2
+
+# List of long-running VMs per user. Those VMs  count to the SLA limit, but are left alone otherwise.
+# Right now this dict has to be edited manually. Given that there shouldn't be that much long
+# running VMs (usually one per user), it is manageable. Despite this, we probably should come up
+# with a way how to maintain its content programatically in the future.
+# long_running:
+#   rdrazny:
+#     - rdrazny-satellite-6.7-latest-1585155022

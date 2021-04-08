@@ -1,0 +1,50 @@
+- name: Output the current VM name
+  debug:
+    var: current_vm_name
+
+- name: Print hostvars
+  debug:
+    msg: "{{ hostvars[current_vm_name] }}"
+    verbosity: 2
+
+- name: Create default expire time fact when not present
+  set_fact:
+    expire_date: "{{ current_time | int + default_expire | int }}"
+    cacheable: true
+  delegate_facts: true
+  delegate_to: "{{ current_vm_name }}"
+  when: hostvars[current_vm_name]['ansible_facts']['expire_date'] is undefined
+
+- name: Print hostvars 2
+  debug:
+    msg: "{{ hostvars[current_vm_name] }}"
+    verbosity: 2
+
+- name: Get the current VM expire time
+  set_fact:
+    current_expire_time: "{{ hostvars[current_vm_name]['expire_date'] | int }}"
+
+- name: Determine if the current VM is past the shutdown period and should be marked for removal
+  set_fact:
+    vms_to_remove: "{{ vms_to_remove | default([]) + [ current_vm_name ]}}"
+  when:  current_time | int > ( current_expire_time | int + sla_shutdown_period_unit | int * sla_shutdown_period | int )
+
+- name: Determine if the current VM is past expire time but still in the shutdown period and should be marked for shutdown
+  set_fact:
+    vms_to_shutdown: "{{ vms_to_shutdown | default([]) + [ current_vm_name ]}}"
+  when:
+    - current_time | int > current_expire_time | int
+    - current_time | int < ( current_expire_time | int + sla_shutdown_period_unit | int * sla_shutdown_period | int )
+
+- name: Determine if the current VM is expiring soon
+  set_fact:
+    vms_expiring_soon: "{{ vms_expiring_soon | default([]) + [ current_vm_name ]}}"
+  when:
+    - current_expire_time | int - current_time | int < expiration_warning_period_unit | int * expiration_warning_period | int
+    - current_expire_time | int - current_time | int > 0
+
+- name: Determine if the current VM is a normal VM
+  set_fact:
+    normal_vms: "{{ normal_vms | default([]) + [ current_vm_name ] }}"
+  when:
+    - current_expire_time | int - current_time | int > expiration_warning_period_unit | int * expiration_warning_period | int

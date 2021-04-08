@@ -1,0 +1,25 @@
+---
+- name: Setup Linter VM
+  hosts: localhost
+  gather_facts: true
+  vars:
+    # Defines the vars required for deploying a template
+    - vm_definition: 'deploy-template-config.yml'
+    # Attempt to wait for VM dictionary of IP information
+    - wait_for_ip: true
+    - vm_infra_wait_for_ip_retries: 20
+    - vm_infra_wait_for_ip_delay: 10
+
+  vars_files:
+  - "{{ vm_definition }}"
+
+  # Deploys the template
+  roles:
+    - external-roles/ovirt.vm-infra
+
+- name: Install and configure Linter
+  hosts: ovirt_tag_linter_vm
+  roles:
+    - role: infra-install/subscription-manager
+      when: ansible_distribution == 'RedHat'
+    - role: linter-setup

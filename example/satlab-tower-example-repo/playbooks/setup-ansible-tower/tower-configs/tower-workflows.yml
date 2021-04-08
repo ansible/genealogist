@@ -1,0 +1,101 @@
+---
+# References:
+# https://tower-cli.readthedocs.io/en/latest/api_ref/resources/workflow.html
+# https://github.com/ansible/tower-cli/blob/master/docs/source/cli_ref/usage/WORKFLOWS.rst
+# https://github.com/ansible/tower-cli/pull/322#issuecomment-314801676
+tower_workflows:
+
+## Satellite CI Workflows
+  - name: workflow-update-satellite-capsule-template
+    description: Workflow used to create the Satellite and Capsule templates from UMB and started by Jenkins
+    organization: Satellite
+    allow_simultaneous: true
+    survey_enabled: false
+    ask_extra_vars: true
+    extra_vars:
+      satellite_version: ""
+      snap_description: "Test Description"
+      snap_version: ""
+      rhel_version: "7.7"
+      provider: "RHEV"
+    schema:
+      - job_template: satlab-tower-deploy-baserhel-from-rhvm-02
+        success_nodes:
+          - job_template: satlab-tower-install-satellite-lite
+            success_nodes:
+              - job_template: satlab-tower-save-template-from-rhvm-02
+                success_nodes:
+                  - job_template: satlab-tower-remove-vm-from-rhvm-02
+                    success_nodes:
+                        - job_template: satlab-tower-set-stats-wf
+
+  - name: workflow-jenkins-test
+    description: Test workflow for Jenkins to test set-stats and other simple workflow calls.
+    organization: Satellite
+    allow_simultaneous: true
+    survey_enabled: false
+    ask_extra_vars: true
+    extra_vars:
+      satellite_version: ""
+      snap_version: ""
+      snap_description: "Test Description"
+      rhel_version: "7.7"
+      provider: "RHEV"
+    schema:
+        - job_template: jenkins-set-stats-association-wf
+
+  - name: workflow-update-rhel-template
+    description: created by Ansible Playbook
+    organization: Satellite
+    allow_simultaneous: true
+    survey_enabled: false
+    ask_extra_vars: true
+    extra_vars:
+      template_description: "Test Description"
+      rhel_version: "7.7"
+      provider: "RHEV"
+    schema:
+      - job_template: satlab-tower-deploy-baserhel-from-rhvm-02
+        success_nodes:
+          - job_template: satlab-tower-setup-infra-env-wf
+            success_nodes:
+              - job_template: satlab-tower-update-rhel-wf
+                success_nodes:
+                  - job_template: satlab-tower-save-template-from-rhvm-02
+                    success_nodes:
+                    - job_template: satlab-tower-remove-vm-from-rhvm-02
+                      success_nodes:
+                        - job_template: satlab-tower-set-stats-rhel-wf
+
+## Satellite Automation Workflows
+  - name: deploy-base-rhel
+    description: Workflow to deploy Base RHEL7 with default settings and password
+    organization: Satellite
+    allow_simultaneous: True
+    survey_enabled: False
+    extra_vars: '{"host_type": "host", "rhel_version": "7.7", "provider": "RHEV"}'
+    ask_extra_vars: True
+    schema:
+      - job_template: satlab-tower-deploy-baserhel-from-rhvm-02
+        success_nodes:
+          - job_template: satlab-tower-deploy-set-stats-for-jenkins-automation-rhvm-02-wf
+
+  - name: remove-vm
+    description: Workflow to remove a VM called from VMBroker. Output data structure is not required.
+    organization: Satellite
+    allow_simultaneous: True
+    survey_enabled: False
+    extra_vars: '{"host_type": "host", "provider": "RHEV", "source_vm": "" }'
+    ask_extra_vars: True
+    schema:
+      - job_template: satlab-tower-remove-vm-from-rhvm-02
+
+  - name: sla-regular-check-wf
+    description: Workflow to perform SLA regular check on all providers
+    organization: Satellite
+    survey_enabled: false
+    ask_extra_vars: true
+    schema:
+      - job_template: sla-regular-check-rhvm-02
+        success_nodes:
+          - job_template: jenkins-set-stats-association-wf

@@ -1,0 +1,6 @@
+---
+- name: Converge
+  hosts: all
+  no_log: false
+  roles:
+    - role: subscription-manager

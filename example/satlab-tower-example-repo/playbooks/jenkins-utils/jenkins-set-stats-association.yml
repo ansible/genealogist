@@ -1,0 +1,18 @@
+# Purpose:
+# Set output set-stats to input known UMB-like call
+---
+- name: Jenkins hack to provide set_stats output to Jenkins AT plugin as it needs it
+  hosts: localhost
+  vars:
+    # Defines the vars required for deploying a template
+    data_out:
+      provider: "{{ provider }}"
+      sat_lite_template: "tpl-sat-lite-{{ satellite_version }}-snap-{{ snap_version }}"
+      satellite_full_template: "tpl-satellite-full-{{ satellite_version }}-snap-{{ snap_version }}"
+      capsule_template: "tpl-capsule-{{ satellite_version }}-snap-{{ snap_version }}"
+
+  tasks:
+    - name: Set a Jenkins variable
+      debug:
+        msg: "JENKINS_EXPORT {{ item.key }}={{ item.value }}"
+      loop: "{{ data_out | dict2items() }}"

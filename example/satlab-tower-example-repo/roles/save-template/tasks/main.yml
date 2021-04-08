@@ -1,0 +1,46 @@
+---
+# tasks file for save-template
+- name: Authorize with {{ engine_fqdn }}
+  ovirt_auth:
+    url: "https://{{ engine_fqdn }}/ovirt-engine/api"
+    username: "{{ engine_user }}"
+    password: "{{ engine_password }}"
+
+- name: Shutdown the machine so the template can be downloaded
+  ovirt_vm:
+    auth: "{{ ovirt_auth }}"
+    name: "{{ source_vm }}"
+    state: stopped
+
+- name: Check if the template already exists
+  ovirt_template_info:
+    auth: "{{ovirt_auth}}"
+    pattern: "name={{ target_template }}"
+  register: template_present
+
+- name: Save an initial version of the template
+  ovirt_template:
+    auth: "{{ ovirt_auth }}"
+    vm: "{{ source_vm }}"
+    name: "{{ target_template }}"
+    seal: "{{ seal_template }}"
+    state: present
+    timeout: "{{ wait_timeout }}"
+  when: template_present.ovirt_templates | length == 0
+
+- name: Save a template subversion
+  ovirt_template:
+    auth: "{{ ovirt_auth }}"
+    vm: "{{ source_vm }}"
+    name: "{{ target_template }}"
+    seal: "{{ seal_template }}"
+    state: present
+    timeout: "{{ wait_timeout }}"
+    version:
+      name: "{{ snap_version }}"
+  when: template_present.ovirt_templates | length > 0
+
+- name: Logout from {{ engine_fqdn }}
+  ovirt_auth:
+    state: absent
+    ovirt_auth: "{{ ovirt_auth }}"

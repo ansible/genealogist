@@ -1,0 +1,7 @@
+List of VMs deployed:
+{% for tag in deployed_groups %}
+Tag {{ tag.split("_",2)[2] }}:
+{% for vm in groups[tag] %}
+    VM name: {{ vm }} FQDN: {{ ovirt_vms | selectattr("name", "==", vm) | map(attribute="fqdn") | list | first }}
+{% endfor %}
+{% endfor %}

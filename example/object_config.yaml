@@ -1,0 +1,31 @@
+configs:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs
+credentials:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-credentials.yml
+hosts:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-hosts.yml
+inventories:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-inventories.yml
+inventory_sources:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-inventory-sources.yml
+job_templates:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-job-templates.yml
+organizations:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-organization.yml
+permissions:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-permissions.yml
+playbooks:
+    paths:
+    - satlab-tower-example-repo/playbooks
+    - satlab-tower-example-repo/playbooks1
+projects:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-projects.yml
+roles:
+    paths: 
+    - satlab-tower-example-repo/roles
+teams:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-teams.yml
+users:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-user-accounts.yml
+workflows:
+    path: satlab-tower-example-repo/playbooks/setup-ansible-tower/tower-configs/tower-workflows.yml

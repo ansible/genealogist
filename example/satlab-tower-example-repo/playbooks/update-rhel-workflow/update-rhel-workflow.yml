@@ -1,0 +1,2 @@
+# Playbook that will install and configure ansible tower end to end.
+- import_playbook: ../setup-infra/setup-infra.yml

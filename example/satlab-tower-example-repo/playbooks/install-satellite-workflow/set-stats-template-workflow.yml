@@ -1,0 +1,17 @@
+# Purpose:
+# Pass the templates created back out to set-stats
+# Original Creation: For Jenkins Jobs
+---
+- name: Workflow set-stats to templates
+  hosts: localhost
+  gather_facts: false
+  roles:
+    - role: set-stats
+      vars:
+        data:
+          JENKINS_EXPORT:
+            sat_lite_template: "{{ sat_lite_target_template }}"
+            # TODO
+            # Need to add these back once the new workflow has been migrated the collections version for convergence
+            # - sat_full_template: "{{ sat_full_target_template }}"
+            # - capsule_template:  "{{ capsule_target_template }}"

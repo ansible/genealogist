@@ -1,0 +1,20 @@
+---
+# tasks file for rhvm-guest-utils
+- name: Install the Guest Agent Package
+  package:
+    name:
+      - "{{ guest_package.util.spice|string}}"
+      - "{{ guest_package.util.ovirt|string}}"
+    state: latest
+
+- name: Start the guest agent service
+  systemd:
+    name: "{{ guest_package.service.ovirt|string}}"
+    state: started
+    enabled: yes
+
+- name: Start the spice service
+  systemd:
+    name: "{{ guest_package.service.spice|string}}"
+    state: started
+    enabled: yes

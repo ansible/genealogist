@@ -1,0 +1,46 @@
+---
+
+- name: Install - Ensure IPA Client packages are installed on RHEL 5 systems
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - ipa-client
+      - ipa-admintools
+      - libselinux-python
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '5'
+
+- name: Install - Ensure IPA Client packages are installed on RHEL 6 systems
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - ipa-client
+      - ipa-admintools
+      - libselinux-python
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '6'
+
+- name: Install - Ensure IPA Client packages are installed on RHEL 7 systems
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - ipa-client
+      - ipa-admintools
+      - libselinux-python
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '7'
+
+- name: Install - Ensure IPA Client packages are installed on RHEL 8 systems
+  yum:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - ipa-client
+      - ipa-admintools
+  when: ansible_distribution == "RedHat" and ansible_distribution_major_version == '8'
+
+# Only change to this role/playbook is the removal of --force-ntp to --no-ntp
+# Our lab already has chronyc enabled
+# https://access.redhat.com/solutions/3647941
+- name: install the client
+  shell: ipa-client-install --domain=ipa.redhat.com --no-ntp --ssh-trust-dns --enable-dns-updates --permit --password="{{ otp }}" -U

@@ -1,0 +1,55 @@
+---
+# tasks file for check-sla-limit
+- name: Initialize custom VM config vars if provided
+  include_vars:
+    file: "{{ vm_definition }}"
+  when: vm_definition != ''
+
+# Use AT user name if running using AT
+- name: Set active user name from AT
+  set_fact:
+    active_user_name: "{{ tower_user_name }}"
+  when: tower_user_name is defined
+
+# Make it work for local Ansible usage as well
+- name: Set active user name using local user name
+  set_fact:
+    active_user_name: "{{ ansible_user_id }}"
+  when: tower_user_name is not defined
+
+- name: "Get number of active VMs for {{ active_user_name }}"
+  set_fact:
+    num_of_active_vms: "{{ grouped_vms[active_user_name] | default([]) | length }}"
+
+- name: "Get VM limit for {{ active_user_name }}"
+  set_fact:
+    sla_limit:  "{{ sla_vm_limits[active_user_name] | default(sla_vm_limits['default']) }}"
+
+- name: Print SLA limit
+  debug:
+    var: sla_limit
+    verbosity: 1
+
+- name: Print current number of VMs
+  debug:
+    var: num_of_active_vms
+    verbosity: 1
+
+- name: Fail if the number of active machines for {{ active_user_name }} is larger than the SLA limit
+  fail:
+    msg: "SLA limit of {{ sla_limit }} for user {{ active_user_name }} already reached"
+  when: num_of_active_vms | int >= sla_limit | int
+
+- name: Compute final number of machines after deploy
+  set_fact:
+    future_number: "{{ vms | length | int + num_of_active_vms | int }}"
+
+- name: Print number of VMs after deploy
+  debug:
+    var: future_number
+    verbosity: 1
+
+- name: Fail if the future number of active machines is larger than SLA limit
+  fail:
+    msg: "Total number of machines ({{ future_number }}) would go over the SLA limit of {{ sla_limit }}"
+  when: future_number | int > sla_limit | int

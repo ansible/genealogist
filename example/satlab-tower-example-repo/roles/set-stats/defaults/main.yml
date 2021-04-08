@@ -1,0 +1,4 @@
+---
+# defaults file for set-stats
+# Data structure that is expected to be passed and provided to set_stats
+data: ""

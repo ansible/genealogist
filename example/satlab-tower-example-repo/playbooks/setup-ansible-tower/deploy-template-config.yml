@@ -1,0 +1,70 @@
+#  The following required variables are supplied by the
+#  ansible vault run as the admin user in
+#  group_vars/all/credentials.yml
+#   - engine_user: "{{ username }}@redhat.com"
+#   - engine_password: "{{ password }}"
+---
+# Default RHVM template to deploy
+template: rhel-7.7-latest
+debug_vm_create: true
+
+# RHVM where VMs are deployed
+engine_fqdn: "{{ rhvm_01_fqdn }}"
+engine_user: "{{ rhvm_01_user }}"
+engine_password: "{{ rhvm_01_password }}"
+
+# Template Variables
+custom_name: ""
+rhvm_hostname: infra-ansible-tower-01.infra.sat.rdu2.redhat.com
+sat_username: admin
+sat_password: changeme
+
+# Default public ssh key to use
+user_ssh_key: "~/.ssh/id_rsa.pub"
+
+# Required wait for FQDN resolution or playbook errors on dictionary return
+timeout: 60
+
+# Required: dictionary that defines "vms:"
+# For more customizable options in deploying a VM, see:
+# external-roles/ovirt.vm-infra/README.md
+deploy_template:
+  cluster: Default
+  template: "{{ template }}"
+  memory: 20GiB
+  cores: 6
+  state: running
+  cloud_init:
+    authorized_ssh_keys: "{{ jenkins_public_ssh_key }}\n{{ lookup('file', '{{ user_ssh_key }}') }}"
+  cloud_init_persist: true
+  nics:
+    - name: nic1
+      interface: virtio
+      mac_address: 76:80:57:ef:eb:d2
+      network: ovirtmgmt
+      profile: ovirtmgmt
+    - name: nic2
+      interface: virtio
+      network: storage
+      profile: storage
+
+# Dictionary that defines the deployed VM
+# Note: Playbook can currently only handle a single VM deployment
+# ToDo: Improve the deployment to several VMs, if commonly needed by end-users
+vms:
+  - name: "{{ rhvm_hostname }}"
+    tag: deploy_template
+    profile: "{{ deploy_template }}"
+    storage_domain: infra_rhvm_01_data
+
+# to be mounted for taking backups of Ansible Tower
+backup_path: /mnt/backups
+nfs_server_backup_vol: 192.168.133.10:/infra_ansible_tower_01_backup
+nfs_version: 3
+
+# add static storage network to VM
+nmcli_ethernet:
+  - conn_name: eth1
+    ifname: eth1
+    ip4: 192.168.133.30/24
+    gw4: 192.168.133.254

@@ -1,0 +1,5 @@
+---
+# defaults file for fake_manifests
+fake_manifest_url: http://sesame.lab.eng.rdu2.redhat.com/manifests/manifest-latest.zip
+fake_manifest_cert: http://sesame.lab.eng.rdu2.redhat.com/manifests/fake_manifest.crt
+fake_manifest_key: http://sesame.lab.eng.rdu2.redhat.com/manifests/fake_manifest.key

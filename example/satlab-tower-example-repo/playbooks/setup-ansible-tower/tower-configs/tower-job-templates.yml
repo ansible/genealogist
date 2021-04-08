@@ -1,0 +1,639 @@
+---
+# Please read the following:
+# JSON Format is needed in collections for extra_vars
+# Only Job name, type, project and playbook are required
+# Survey spec can be exported from existing job template using:
+# tower-cli job_template survey --name="my job template" -f yaml
+# https://github.com/ansible/tower-cli/blob/master/docs/source/cli_ref/usage/SURVEYS.rst
+# You can retrieve a job along with its survey spec using tower cli as follows:
+# tower-cli receive --job_template <Name> --user admin --format yaml
+# If you need to add Survey, Survey spec would look like given below:
+# survey_spec:
+#   name: ''
+#   description: ''
+#   spec:
+#   - question_name: Target Host
+#     question_description: target host is required for playbook to work, this host
+#       needs to exist in the inventory
+#     required: True
+#     type: text
+#     variable: target_hosts
+#     min: 0
+#     max: 1024
+#     default: infra-ansible-tower-testing.infra.sat.rdu2.redhat.com
+#     choices: ''
+#     new_question: True
+
+tower_templates:
+
+  - name: Tower-backup-job-JSON-only
+    description: Tower meta backup job
+    job_type: run
+    inventory: satlab-tower-inventory
+    project: satlab-tower-master
+    ask_extra_vars: True
+    survey_enabled: False
+    verbosity: 3
+    credentials:
+    - machine-creds-with-jenkins-pvt-key
+    - satlab-tower-vault
+    - satlab-user-vault
+    playbook: playbooks/setup-ansible-tower/meta-json-only-backup.yml
+    limit: infra-ansible-tower-01.infra.sat.rdu2.redhat.com
+    extra_vars:
+      target_hosts: infra-ansible-tower-01.infra.sat.rdu2.redhat.com
+    state: present
+
+  - name: Tower-backup-job-full-backup
+    description: Tower full backup job - produces tar ball
+    job_type: run
+    inventory: satlab-tower-inventory
+    project: satlab-tower-master
+    playbook: playbooks/setup-ansible-tower/full-backup.yml
+    credentials:
+      - machine-creds-with-jenkins-pvt-key
+      - satlab-tower-vault
+    ask_extra_vars: True
+    limit: infra-ansible-tower-01.infra.sat.rdu2.redhat.com
+    survey_enabled: False
+    extra_vars:
+      target_hosts: infra-ansible-tower-01.infra.sat.rdu2.redhat.com
+      tower_setup_bundle_tar_url: https://releases.ansible.com/ansible-tower/setup-bundle/ansible-tower-setup-bundle-3.7.1-1.tar.gz
+    verbosity: 3
+    state: present
+
+  - name: satlab-tower-deploy-base-rhel-from-rhvm-02
+    description: Job Template used to deploy a base 100G, 6CPU, 20G Ram RHEL template
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/deploy-base-rhel/deploy-base-rhel.yml
+    ask_extra_vars: True
+    extra_vars:  "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-deploy-baserhel-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+     - satlab-tower-vault
+     - satlab-user-vault
+     - machine-creds-with-jenkins-pvt-key
+     - admin@internal-RHVM-02
+    verbosity: 0
+    inventory: satlab-tower-inventory
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-remove-vm-from-rhvm-02
+    description: Playbook utility to clean up a single VM from a hypervisor
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/utils/remove-vm.yml
+    ask_extra_vars: True
+    extra_vars: {"source_vm": "", "force_delete": "false"}
+    concurrent_jobs_enabled: True
+    credentials:
+     - satlab-tower-vault
+     - admin@internal-RHVM-02
+    verbosity: 0
+    inventory: satlab-tower-inventory
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: jenkins-set-stats-association-wf
+    description: Ansible Playbook to quickly set-stats from the input variables and create a dictionary output to JENKINS_EXPORT for jenkins
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/utils/jenkins-set-stats-association.yml
+    ask_extra_vars: True
+    extra_vars: {"satellite_version": "", "snap_version": "", "rhel_version": "7.7", "provider": "" }
+    concurrent_jobs_enabled: True
+    verbosity: 2
+    inventory: satlab-tower-inventory
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-update-rhel-wf
+    description: Ansible Playbook to update the version of RHEL using setup-infra
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/update-rhel-workflow/update-rhel-workflow.yml
+    ask_extra_vars: False
+    concurrent_jobs_enabled: True
+    credentials:
+     - satlab-tower-vault
+     - satlab-user-vault
+     - machine-creds-with-jenkins-pvt-key
+     - admin@internal-RHVM-02
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-setup-infra-env-wf
+    description: Before the setup-infra playbook can be called as a template, the ENV variables must be set in the workflow
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/update-rhel-workflow/provide-setup-infra-meta.yml
+    ask_extra_vars: False
+    concurrent_jobs_enabled: True
+    credentials:
+     - satlab-tower-vault
+     - admin@internal-RHVM-02
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-set-stats-rhel-wf
+    description: created by Ansible Playbook
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/update-rhel-workflow/set-stats-rhel.yml
+    ask_extra_vars: False
+    concurrent_jobs_enabled: True
+    credentials:
+     - satlab-tower-vault
+    verbosity: 0
+    inventory: satlab-tower-inventory
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-save-template-from-rhvm-02
+    description: created by Ansible Playbook
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/utils/save-template.yml
+    ask_extra_vars: True
+    extra_vars: {"source_vm": "", "target_template": "", "seal_template": "True", "snap_version": "SNAP1", "wait_timeout": "360"}
+    concurrent_jobs_enabled: True
+    credentials:
+     - satlab-tower-vault
+     - admin@internal-RHVM-02
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-deploy-set-stats-for-jenkins-automation-rhvm-02-wf
+    description: Set Stats output for Jenkins and Automation to use at the end of VM Deployment
+    playbook: playbooks/utils/set-stats-for-jenkins-automation.yml
+    job_type: run
+    inventory: RHVM-02
+    project: satlab-tower-master
+    credentials: machine-creds-with-jenkins-pvt-key
+    verbosity: 2
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+    concurrent_jobs_enabled: True
+    fact_caching_enabled: True
+    ask_extra_vars: True
+    extra_vars: {"target_hosts": "", "host_type": "", "template": "", "provider": ""}
+
+  - name: satlab-tower-deploy-sat-jenkins-from-rhvm-02
+    description: Job Template used to deploy a base 100G, 6CPU, 20G Ram sat-jenkins template
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/deploy-sat-jenkins-workflow/deploy-sat-jenkins.yml
+    ask_extra_vars: True
+    extra_vars:  "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-deploy-baserhel-vars.json') }}"
+    concurrent_jobs_enabled: true
+    credentials:
+     - satlab-tower-vault
+     - satlab-user-vault
+     - machine-creds-with-jenkins-pvt-key
+     - admin@internal-RHVM-02
+    verbosity: 0
+    inventory: satlab-tower-inventory
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-deploy-capsule-from-rhvm-02
+    description: Job Template used to deploy a base 100G, 6CPU, 20G Ram capsule template
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/deploy-capsule-workflow/deploy-capsule.yml
+    ask_extra_vars: True
+    extra_vars:  "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-deploy-baserhel-vars.json') }}"
+    concurrent_jobs_enabled: true
+    credentials:
+     - satlab-tower-vault
+     - satlab-user-vault
+     - machine-creds-with-jenkins-pvt-key
+     - admin@internal-RHVM-02
+    verbosity: 0
+    inventory: satlab-tower-inventory
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: set-expire-time-for-a-vm
+    ask_extra_vars: true
+    credentials:
+    - machine-creds-with-jenkins-pvt-key
+    - satlab-tower-vault
+    - satlab-user-vault
+    survey_enabled: true
+    survey_spec:
+      name: 'Get information about a new expire time for a VM'
+      description: 'Collects name of a VM and its new expire time '
+      spec:
+      - question_name: VM that should be extended
+        question_description: 'Name of the VM which expire time should be extended'
+        required: true
+        type: text
+        variable: target_vm
+        min: 0
+        max: 1024
+        default: ''
+        choices: ''
+        new_question: true
+      - question_name: New expire time
+        question_description: 'Can take three forms - UNIX epoch timestamp (e.g. 1589366828), relative time in seconds from now (+3600), or human friendly format (2020-05-20 14:00)'
+        required: true
+        type: text
+        variable: new_expire_time
+        min: 0
+        max: 1024
+        default: ''
+        choices: ''
+        new_question: true
+    inventory: RHVM-02
+    playbook: playbooks/sla/set-expire-time.yml
+    project: satlab-tower-master
+    fact_caching_enabled: true
+
+  - name: sla-regular-check-rhvm-02
+    ask_extra_vars: true
+    credentials:
+    - machine-creds-with-jenkins-pvt-key
+    - satlab-tower-vault
+    - satlab-user-vault
+    inventory: RHVM-02
+    playbook: playbooks/sla/perform-regular-sla-check.yml
+    project: satlab-tower-master
+    fact_caching_enabled: true
+
+  - name: generate-sla-report
+    concurrent_jobs_enabled: True
+    ask_extra_vars: true
+    credentials:
+    - machine-creds-with-jenkins-pvt-key
+    - satlab-tower-vault
+    - satlab-user-vault
+    inventory: RHVM-02
+    playbook: playbooks/sla/generate-sla-report.yml
+    project: satlab-tower-master
+    fact_caching_enabled: True
+
+  - name: powercycle-vm
+    description: Turn a VM off and then back on
+    inventory: RHVM-02
+    concurrent_jobs_enabled: True
+    ask_extra_vars: true
+    credentials:
+    - admin@internal-RHVM-02
+    - machine-creds-with-jenkins-pvt-key
+    - satlab-tower-vault
+    - satlab-user-vault
+    playbook: playbooks/utils/powercycle-vm.yml
+    project: satlab-tower-master
+    survey_enabled: true
+    survey_spec:
+      name: 'Get name of VM to be powercycled'
+      description: 'The name of VM must be passed as RHV name not FQDN'
+      spec:
+      - question_name: VM to be powercycled
+        question_description: 'Enter the name of VM'
+        required: true
+        type: text
+        variable: target_vm
+        min: 0
+        max: 1024
+        default: ''
+        choices: ''
+        new_question: true
+
+  - name: satlab-tower-make-vm-stateless-rhvm-02
+    description: This JT can be run both stand-alone or as a part of WT
+    inventory: RHVM-02
+    concurrent_jobs_enabled: True
+    credentials:
+    - admin@internal-RHVM-02
+    - machine-creds-with-jenkins-pvt-key
+    - satlab-tower-vault
+    - satlab-user-vault
+    playbook: playbooks/utils/make-vm-stateless.yml
+    project: satlab-tower-master
+    ask_extra_vars: true
+    survey_enabled: true
+    survey_spec:
+      name: 'Get name of VM that has to become stateless'
+      description: 'The name of VM must be passed as RHV name not FQDN'
+      spec:
+      - question_name: Enter VM to make stateless
+        question_description: This VM will be made stateless
+        required: false
+        type: text
+        variable: stateless_vm
+        min: 0
+        max: 1024
+        default: ''
+        choices: ''
+        new_question: true
+
+  - name: satlab-tower-pre-install-sat-lite
+    description: The pre-install section of Satellite Lite which prepares the VM for Satellite Installation
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-sat-lite-template-workflow/pre-install-sat-lite.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-install-sat-lite
+    description: Installation portion of the satellite-installer for the Satellite Lite image creation
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-sat-lite-template-workflow/install-sat-lite.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-post-install-sat-lite
+    description: Minimal post-configuration for the Satellite Lite image required before template creation
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-sat-lite-template-workflow/post-install-sat-lite.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-pre-install-sat-jenkins
+    description: The pre-install section of Satellite Full which prepares the VM for Satellite Installation
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-sat-jenkins-template-workflow/pre-install-sat-jenkins.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-install-sat-jenkins
+    description: Installation portion of the satellite-installer for the Satellite Full image creation
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-sat-jenkins-template-workflow/install-sat-jenkins.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-post-install-sat-jenkins
+    description: All post-install roles required for Satellite configuration for the Satellite Full image for use by Jenkins Pipeline Sanity Testing
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-sat-jenkins-template-workflow/post-install-sat-jenkins.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-install-capsule
+    description: Installation of the Capsule RPM for template creation. No satellite-installer ran.
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-capsule-template-workflow/install-capsule-workflow.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-pre-install-capsule
+    description: Preparation of the VM image before the installation of the Capsule RPM
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-capsule-template-workflow/pre-install-capsule-workflow.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-post-install-capsule
+    description: Basic Clean-up of the Capsule environment before creating a Capsule template
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/create-capsule-template-workflow/post-install-capsule-workflow.yml
+    ask_extra_vars: True
+    extra_vars: "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-install-vars.json') }}"
+    concurrent_jobs_enabled: True
+    credentials:
+      - satlab-tower-vault
+      - satlab-user-vault
+      - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    inventory: RHVM-02
+
+  - name: satlab-tower-deploy-sat-lite-from-rhvm-02
+    description: Job Template used to deploy a base 100G, 6CPU, 20G Ram sat-lite template
+    project: satlab-tower-master
+    job_type: run
+    playbook: playbooks/deploy-sat-lite-workflow/deploy-sat-lite.yml
+    ask_extra_vars: True
+    extra_vars:  "{{ lookup('file', '../../tower-configs/extra-vars-files/satlab-tower-deploy-baserhel-vars.json') }}"
+    concurrent_jobs_enabled: true
+    credentials:
+     - satlab-tower-vault
+     - satlab-user-vault
+     - machine-creds-with-jenkins-pvt-key
+     - admin@internal-RHVM-02
+    verbosity: 0
+    inventory: satlab-tower-inventory
+    state: present
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+
+  - name: satlab-tower-define-template-rhvm-02
+    description: Uploads image and define RHV template from it
+    playbook: playbooks/define-template/define-template.yml
+    job_type: run
+    inventory: RHVM-02
+    project: satlab-tower-master
+    credentials:
+    - satlab-tower-vault
+    - satlab-user-vault
+    verbosity: 2
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+    concurrent_jobs_enabled: True
+    fact_caching_enabled: True
+    ask_extra_vars: True
+    extra_vars: {"qcow_url": "", "template_cpu": 2, "template_memory": "4GiB", "template_disk_size": ""}
+    survey_enabled: True
+    survey_spec:
+      name: ''
+      description: ''
+      spec:
+        - question_name: Enter qcow_url to use
+          question_description: ''
+          required: True
+          type: text
+          variable: qcow_url
+          min: 0
+          max: 1024
+          default: ''
+          choices: ''
+          new_question: True
+        - question_name: Enter name for the template
+          question_description: ''
+          required: true
+          type: text
+          variable: template_name
+          min: 0
+          max: 1024
+          default: ''
+          choices: ''
+          new_question: True
+        - question_name: Choose the type of the template
+          question_description: ''
+          required: true
+          type: multiplechoice
+          variable: template_type
+          min: null
+          max: null
+          default: server
+          choices:
+            desktop
+
+            server
+
+            high_performance
+          new_question: True
+
+  - name: satlab-tower-define-base-rhel-template-rhvm-02
+    description: Uploads QCOW archive to a sealed RHEL template with SatLab modifications
+    playbook: playbooks/define-base-rhel-template/define-base-rhel-template.yml
+    job_type: run
+    inventory: RHVM-02
+    project: satlab-tower-master
+    credentials:
+    - satlab-tower-vault
+    - satlab-user-vault
+    verbosity: 0
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+    concurrent_jobs_enabled: True
+    fact_caching_enabled: True
+    ask_extra_vars: True
+    extra_vars:
+      qcow_url:                     ""
+      template_name:                ""
+      template_cpu:                 "1"
+      template_disk_size:           "10GiB"
+      template_disk_storage:        "infra_rhvm_02_data"
+      template_memory:              "4GiB"
+      template_prerequisites_tasks: "define-base-rhel-prerequisites-tasks.yml"
+      template_seal:                "True"
+      template_type:                "server"
+    survey_enabled: False
+
+  - name: satlab-tower-custom-yum-repos-rhvm-02
+    description: Creates YUM custom repos on a specified host
+    playbook: playbooks/utils/create_repo_files.yml
+    job_type: run
+    inventory: RHVM-02
+    project: satlab-tower-master
+    credentials:
+    - satlab-tower-vault
+    - satlab-user-vault
+    - machine-creds-with-jenkins-pvt-key
+    verbosity: 0
+    custom_virtualenv: /opt/virtualenvs/satlab-venv/
+    concurrent_jobs_enabled: True
+    fact_caching_enabled: True
+    ask_extra_vars: True
+    survey_enabled: True
+    survey_spec:
+      name: ''
+      description: ''
+      spec:
+        - question_name: Target host
+          question_description: 'YUM repos will be created on this host'
+          required: True
+          type: text
+          variable: target_host
+          min: 0
+          max: 1024
+          default: ''
+          choices: ''
+          new_question: True
+        - question_name: Repo file URL
+          question_description: 'Where is the repo file (optional)'
+          required: False
+          type: text
+          variable: repo_file_url
+          min: 1
+          max: 1024
+          default: ''
+          choices: ''
+          new_question: True
+        - question_name: Target filename
+          question_description: 'Under which name the repo will be saved. This is filename only, NOT the whole path'
+          required: False
+          type: text
+          variable: yum_repo_downloaded_file
+          min: 1
+          max: 1024
+          default: ''
+          choices: ''
+          new_question: True

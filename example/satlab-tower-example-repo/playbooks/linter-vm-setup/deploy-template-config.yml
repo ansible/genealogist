@@ -1,0 +1,51 @@
+#  The following required variables are supplied by the
+#  ansible vault run as the admin user in
+#  group_vars/all/credentials.yml
+#   - engine_user: "{{ username }}@redhat.com"
+#   - engine_password: "{{ password }}"
+---
+# Default RHVM template to deploy
+template: rhel-7.7-latest
+debug_vm_create: true
+
+# RHVM where VMs are deployed
+engine_fqdn: infra-rhvm-01.infra.sat.rdu2.redhat.com
+
+# Template Variables
+rhvm_hostname: "gitlab-runner-linter-vm-{{ ansible_date_time.epoch }}"
+
+# Default public ssh key to use
+user_ssh_key: "~/.ssh/id_rsa.pub"
+
+# Required wait for FQDN resolution or playbook errors on dictionary return
+timeout: 30
+
+# Required: dictionary that defines "vms:"
+# For more customizable options in deploying a VM, see:
+# external-roles/ovirt.vm-infra/README.md
+deploy_template:
+  cluster: Default
+  template: "{{ template }}"
+  memory: 20GiB
+  cores: 6
+  state: running
+  cloud_init:
+    authorized_ssh_keys: "{{ jenkins_public_ssh_key }}\n{{ lookup('file', '{{ user_ssh_key }}') }}"
+  cloud_init_persist: true
+
+# Dictionary that defines the deployed VM
+# Note: Playbook can currently only handle a single VM deployment
+# ToDo: Improve the deployment to several VMs, if commonly needed by end-users
+vms:
+  - name: "{{ rhvm_hostname }}"
+    tag: linter_vm
+    profile: "{{ deploy_template }}"
+
+# Linter role specific vars below
+ca_cert_url: https://password.corp.redhat.com/RH-IT-Root-CA.crt
+persistent_vol: /srv/gitlab-runner/config
+gitlab_url: gitlab.sat.engineering.redhat.com
+gitlab_cert_name: "{{ gitlab_url }}.crt"
+gitlab_runner_registration_token: hsWEpPPEnq9R4k2gFqby
+docker_ce_repo: https://download.docker.com/linux/centos/docker-ce.repo
+epel_repo_url: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm

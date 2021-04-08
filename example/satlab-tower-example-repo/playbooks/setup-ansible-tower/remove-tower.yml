@@ -1,0 +1,17 @@
+---
+- name: Play to remove Tower deployed by GitLab CI before new one is deployed
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Handle the error
+      block:
+        - include_role:
+            name: remove-vm
+          vars:
+            engine_fqdn: "{{ engine_fqdn }}"
+            source_vm: "{{ target_host }}"
+            force_delete: True
+      rescue:
+        # this rescue is required to continue to next step in pipeline to deploy new Tower
+        - debug:
+            msg: 'AT VM may not be present.'

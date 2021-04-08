@@ -1,0 +1,31 @@
+---
+- name: Playbook to find Ansible Tower deployed for a GitLab MR
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Fetch VM Info for Ansible Tower for this MR from "{{ engine_fqdn }}"
+      ovirt_vm_info:
+        auth:
+          username: "{{ engine_user }}"
+          password: "{{ engine_password }}"
+          hostname: "{{ engine_fqdn }}"
+          insecure: True
+        case_sensitive: True
+        max: 1
+        pattern: "{{ vm_name }}"
+      register: result
+
+    - debug:
+        msg: "Found FQDN for tower {{ vm_name }} as {{ result.ovirt_vms[0].fqdn }}"
+
+    - name: Add host "{{ result.ovirt_vms[0].fqdn  }}" to in-memory inventory to use in configure-tower.yml
+      no_log: True
+      add_host:
+        name: "{{ vm_name }}"
+        ansible_host: "{{ result.ovirt_vms[0].fqdn }}"
+        groups: "ovirt_tag_deploy_template"
+        ansible_user: root
+        ansible_password: "{{ root_password | default(omit) }}"
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+
+- import_playbook: configure-tower.yml

@@ -1,0 +1,40 @@
+---
+# tasks file for generate-sla-stats
+
+- name: "Register with {{ engine_fqdn }} to check inventory"
+  ovirt_auth:
+    url: "https://{{ engine_fqdn }}/ovirt-engine/api"
+    username: "{{ engine_user }}"
+    password: "{{ engine_password }}"
+
+- name: "Get raw VM data on {{ engine_fqdn }}"
+  ovirt_vm_info:
+    auth: "{{ ovirt_auth }}"
+    pattern: "{{ search_pattern }}"
+  register: vm_raw_data
+
+- name: Find nonconformant VM names
+  ovirt_vm_info:
+    auth: "{{ ovirt_auth }}"
+    pattern: "{{ bad_vms_search_pattern }}"
+  register: non_conformant_vm_raw_data
+
+- name: Extract VM names
+  set_fact:
+    vm_names: "{{ vm_raw_data ['ovirt_vms'] | map(attribute='name') |  list  | difference(ignore_vm | default([])) }}"
+    bad_vm_names: "{{ non_conformant_vm_raw_data ['ovirt_vms'] | map(attribute='name') |  list  |
+     difference(ignore_vm | default([])) }}"
+
+- name: Get all user names
+  set_fact:
+    user_names: "{{ vm_names | map('regex_search', '^.*?(?=-)') | list | sort | unique }}"
+
+- name: Group VMs by user
+  set_fact:
+    grouped_vms: "{{ grouped_vms | default({}) | combine( { item: vm_names | select( 'match', item) | list} ) }}"
+  loop: "{{ user_names }}"
+
+- name: Revoke the SSO token for audit
+  ovirt_auth:
+    state: absent
+    ovirt_auth: "{{ ovirt_auth }}"

@@ -1,0 +1,19 @@
+# Purpose:
+# Install capsule on a dynamically deployed template
+---
+- name: Install Capsule
+  hosts: "{{ target_hosts or vm_provisioned }}"
+  vars:
+    # Capsule Specific Required Variables
+    - sat_version:       "{{ satellite_version }}"
+    - capsule_template:  "tpl-capsule-{{ satellite_version }}-snap-{{ snap_version }}"
+
+  roles:
+    - role: infra-install/subscription-manager
+    - role: install-capsule
+    - role: set-stats
+      vars:
+        data:
+          source_vm:       "{{ target_hosts or vm_provisioned[0] }}"
+          target_template: "{{ capsule_template }}"
+          capsule_target_template: "{{ capsule_template }}"

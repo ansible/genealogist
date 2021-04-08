@@ -1,0 +1,38 @@
+---
+- name: Register with RHVM-01 to check inventory
+  ovirt_auth:
+    url: "https://{{engine_fqdn}}/ovirt-engine/api"
+    username: "{{ engine_user }}"
+    password: "{{ engine_password }}"
+
+- name: Get the new deployed vm hostname from RHVM-01 inventory
+  ovirt_vm_facts:
+    auth: "{{ ovirt_auth }}"
+    pattern: name={{ rhvm_hostname }}
+
+- name: Additional debugging for dictionary list if ovirt_vms fails to return values
+  debug:
+    var: ovirt_vms
+    verbosity: 2
+
+- name: Additional "{{ timeout }}" second wait to allow DHCP to complete for FQDN
+  wait_for:
+    timeout: "{{ timeout }}"
+
+- name: Output the RHVM-01 VM name with the VM FQDN name for post-deploy configuration
+  debug:
+    msg:
+    - "Host has been provisioned: {{ rhvm_hostname }} with FQDN {{ ovirt_vms[0].fqdn }}"
+
+# VM host names and IPs get reused and need to be removed, else there will be issues
+# with initialize playbook and ssh connections in general
+- name: Remove old host record from the known_hosts file
+  known_hosts:
+    name: "{{ ovirt_vms[0].fqdn }}"
+    state: absent
+
+# Revoke the SSO token returned from previous task
+- name: Revoke the SSO token for audit
+  ovirt_auth:
+    state: absent
+    ovirt_auth: "{{ ovirt_auth }}"

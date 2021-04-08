@@ -1,0 +1,2 @@
+---
+tower_hostname: "{{ hostvars['localhost']['ovirt_vms'][0]['fqdn'] | default('localhost') }}"

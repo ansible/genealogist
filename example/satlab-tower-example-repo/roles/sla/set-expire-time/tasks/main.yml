@@ -1,0 +1,41 @@
+---
+# tasks file for set-expire-time
+- name: Process relative expire time
+  set_fact:
+    new_expire_time_processed: "{{ ((ansible_date_time.epoch | int + new_expire_time[1:] | int )) }}"
+  when: new_expire_time is regex("^\+(?=\d*)")
+
+- name: Process human-friendly expire time
+  set_fact:
+    new_expire_time_processed: "{{ (new_expire_time | to_datetime(to_datetime_format)).strftime('%s') }}"
+  when: new_expire_time is regex(human_friendly_expire_time_pattern)
+
+- name: Process absolute UNIX epoch time
+  set_fact:
+    new_expire_time_processed: "{{ new_expire_time }}"
+  when: new_expire_time is regex("^\d*$")
+
+
+- name: Print the new expire time input
+  debug:
+    var: new_expire_time
+    verbosity: 2
+
+- name: Print the processed expire time
+  debug:
+    var: new_expire_time_processed
+    verbosity: 2
+
+- name: Validate the new expire time
+  assert:
+    that:
+      - new_expire_time_processed is defined
+      - new_expire_time_processed | int is number
+      - new_expire_time_processed | int > ansible_date_time.epoch | int
+    fail_msg: "The new_expire_time variable is either not defined correctly, not a number, or in the past"
+    success_msg: "The new expire time is valid"
+
+- name: Set expire time for the host
+  set_fact:
+    expire_date: "{{ new_expire_time_processed }}"
+    cacheable: yes

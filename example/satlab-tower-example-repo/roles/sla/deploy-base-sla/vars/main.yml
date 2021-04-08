@@ -1,0 +1,4 @@
+---
+# vars file for deploy-base-sla
+wait_for_ip: true
+engine_fqdn: infra-rhvm-02.infra.sat.rdu2.redhat.com

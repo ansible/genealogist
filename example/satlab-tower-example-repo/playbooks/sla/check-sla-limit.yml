@@ -1,0 +1,6 @@
+- name: "Check SLA limit for the {{ tower_user_name | default('active')}} user"
+  hosts: localhost
+  gather_facts: true
+
+  roles:
+    - role: sla/check-sla-limit

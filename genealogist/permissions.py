@@ -1,8 +1,3 @@
-'''
-This file is a POC. It will implement:
-https://gitlab.cee.redhat.com/kkulkarni/ansible-genealogist/issues/2
-'''
-
 from pathlib import Path
 from pprint import pprint
 

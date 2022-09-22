@@ -1,7 +1,3 @@
-'''
-This file is a POC. It will implement: 
-https://gitlab.cee.redhat.com/kkulkarni/ansible-genealogist/issues/1
-'''
 import os
 from pathlib import Path
 import yaml
@@ -36,4 +32,4 @@ class AnsibleTowerPlaybooks:
 if __name__ == "__main__":
     at_configs = config.load_ansible_tower_configs()
     atp = AnsibleTowerPlaybooks(at_configs)
-    pprint.pprint(atp.derive_relations(given_pb="/home/kkulkarni/playbooks/utils/remove-vm.yml"))
+    #pprint.pprint(atp.derive_relations(given_pb="<absolute path to playbook>"))
